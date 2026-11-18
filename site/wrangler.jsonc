@@ -2,12 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sonor-fi",
   "compatibility_date": "2026-11-16",
-  // The placeholder is static; nothing about visitors is logged.
+  "main": "src/index.ts",
+  // Nothing about visitors is logged; the Worker only redirects and adds headers.
   "observability": { "enabled": false },
   "workers_dev": true,
   "routes": [
     { "pattern": "sonor.fi", "custom_domain": true },
     { "pattern": "www.sonor.fi", "custom_domain": true }
   ],
-  "assets": { "directory": "public" }
+  "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true }
 }
