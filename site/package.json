@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "test -s index.html"
+    "build": "test -s public/index.html"
   }
 }
