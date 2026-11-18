@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "build": "test -s public/index.html"
+    "build": "test -s public/index.html",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "4.163.0"
   }
 }

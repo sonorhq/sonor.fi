@@ -91,11 +91,10 @@ The Durable Object namespace comes from the migration, so the first deploy is by
 ```sh
 pnpm install
 pnpm exec wrangler login            # or export CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
-pnpm exec wrangler pages project create sonor-fi --production-branch main
 pnpm --filter sonor-api exec wrangler deploy
 ```
 
-- The `sonor-fi` Pages project must exist before CI deploys the website. Then attach `sonor.fi` as its custom domain in the Cloudflare dashboard.
+- The website is a separate Worker with static assets (`site/wrangler.jsonc`, the successor of Pages); `wrangler deploy` in `site/` creates it and its `sonor.fi` and `www.sonor.fi` custom domains.
 - The Worker deploy creates the Durable Object namespace, the `api.sonor.fi` DNS record and certificate. The zone `sonor.fi` must be on this Cloudflare account.
 - The Analytics Engine dataset is created on the first write, so it needs no setup.
 
@@ -112,5 +111,5 @@ Set up the environment once, in the repository's Settings:
 
 The token: create one from the "Edit Cloudflare Workers" template, scoped to the one account, and add Cloudflare Pages edit for the website deploy.
 
-The workflow runs the tests, then `wrangler deploy` for this Worker, then `wrangler pages deploy site/public --project-name sonor-fi` for the website.
+The workflow runs the tests, then `wrangler deploy` for this Worker, then `wrangler deploy` in `site/` for the website. The API deploy runs only when the repo variable `DEPLOY_API` is `true`.
 Pull requests run `typecheck`, `test` and the site check in `.github/workflows/ci.yml`, without secrets.
