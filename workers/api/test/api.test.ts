@@ -1,0 +1,349 @@
+import { env, runDurableObjectAlarm, runInDurableObject } from "cloudflare:test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import worker from "../src/index";
+import { CACHE_TTL_MS } from "../src/state";
+
+const IP = "203.0.113.77";
+const BASE = "https://api.test";
+const RELEASES_URL = "https://api.github.com/repos/sonorhq/sonor/releases?per_page=10";
+
+// Newest published pre-release, with whitespace and non-ASCII that the Worker must not mangle.
+const release = (tag: string, fields: Record<string, unknown> = {}) => ({
+  tag_name: tag,
+  name: `Sonor ${tag} ☃`,
+  draft: false,
+  prerelease: tag.includes("beta"),
+  created_at: "2026-11-01T10:00:00Z",
+  published_at: "2026-11-01T10:05:00Z",
+  assets: [],
+  ...fields,
+});
+const RELEASE = release("v1.0.0-beta.3", { published_at: "2026-11-10T09:00:00Z" });
+const OLD = release("v1.0.0-beta.2");
+const RELEASE_BODY = JSON.stringify(RELEASE);
+
+const stub = () => env.API_STATE.getByName("api");
+const points: AnalyticsEngineDataPoint[] = [];
+const testEnv = {
+  API_STATE: env.API_STATE,
+  RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
+} as Cloudflare.Env;
+
+const checkHeaders = {
+  "CF-Connecting-IP": IP,
+  "X-Sonor-Version": "1.0.0-beta.3",
+  "X-Sonor-Commit": "abc1234",
+  "X-Sonor-OS": "linux",
+  "X-Sonor-Arch": "x86_64",
+  "X-Sonor-Platform": "desktop",
+  "X-Sonor-Lang": "en",
+  "X-Sonor-Expires": "2027-02-16",
+};
+const latest = (headers: Record<string, string> = checkHeaders, init: RequestInit = {}) =>
+  worker.fetch(new Request(`${BASE}/v1/releases/latest`, { ...init, headers: { ...headers } }), testEnv);
+const request = (path: string, init: RequestInit = {}) => worker.fetch(new Request(`${BASE}${path}`, init), testEnv);
+
+// The release lookup runs inside the Durable Object, so tests drive it there with a stand-in for GitHub.
+const ok = (body: unknown) => async () => new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
+const fail = async () => new Response("rate limited", { status: 403 });
+const upstream = (fetchFn: typeof fetch) => runInDurableObject(stub(), (instance) => instance.latest(fetchFn));
+
+// Expires the cached release by moving its fetch time back past the TTL.
+const expireCache = () =>
+  runInDurableObject(stub(), async (_, state) => {
+    const cached = await state.storage.get<{ body: string; fetchedAt: number }>("release");
+    await state.storage.put("release", { ...cached, fetchedAt: Date.now() - CACHE_TTL_MS - 1 });
+  });
+const primeCache = (body: string) =>
+  runInDurableObject(stub(), (_, state) => state.storage.put("release", { body, fetchedAt: Date.now() }));
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+beforeEach(async () => {
+  points.length = 0;
+  // Storage isn't always reset between tests, so start each one empty.
+  await runInDurableObject(stub(), (_, state) => state.storage.deleteAll());
+});
+
+describe("GitHub release lookup", () => {
+  it("asks GitHub for the releases list with the User-Agent and Accept it expects", async () => {
+    const body = await upstream(async (url, init) => {
+      const headers = new Headers(init?.headers);
+      const expected = headers.get("User-Agent") === "sonor-api" && headers.get("Accept") === "application/vnd.github+json";
+      return expected && url === RELEASES_URL ? new Response(JSON.stringify([RELEASE])) : new Response("bad request", { status: 400 });
+    });
+    expect(body).toBe(RELEASE_BODY);
+  });
+
+  it("picks the newest published pre-release, whatever order GitHub lists them in", async () => {
+    const list = [OLD, release("v0.9.0", { published_at: "2026-09-01T00:00:00Z" }), RELEASE];
+    expect(await upstream(ok(list))).toBe(RELEASE_BODY);
+  });
+
+  it("ignores drafts, even the newest", async () => {
+    const draft = release("v1.1.0-draft", { draft: true, published_at: null, created_at: "2026-11-15T00:00:00Z" });
+    expect(await upstream(ok([draft, RELEASE]))).toBe(RELEASE_BODY);
+  });
+
+  it("returns null when GitHub lists only drafts", async () => {
+    expect(await upstream(ok([release("v2.0.0", { draft: true, published_at: null })]))).toBeNull();
+  });
+
+  it("caches the release for five minutes", async () => {
+    expect(await upstream(ok([RELEASE]))).toBe(RELEASE_BODY);
+    expect(await upstream(ok([release("v2.0.0", { published_at: "2026-11-17T00:00:00Z" })]))).toBe(RELEASE_BODY);
+
+    await expireCache();
+    const refreshed = await upstream(ok([release("v2.0.0", { published_at: "2026-11-17T00:00:00Z" })]));
+    expect(JSON.parse(refreshed ?? "{}").tag_name).toBe("v2.0.0");
+  });
+
+  it("serves the stale copy when GitHub fails", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache();
+    expect(await upstream(fail)).toBe(RELEASE_BODY);
+  });
+
+  it("serves the stale copy when GitHub is unreachable or sends a body that isn't JSON", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache();
+    expect(await upstream(() => Promise.reject(new TypeError("network down")))).toBe(RELEASE_BODY);
+    await expireCache();
+    expect(await upstream(async () => new Response("<html>"))).toBe(RELEASE_BODY);
+  });
+
+  it("waits a minute before asking GitHub again after a failed refresh", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache();
+    expect(await upstream(fail)).toBe(RELEASE_BODY);
+    expect(await upstream(ok([OLD]))).toBe(RELEASE_BODY);
+
+    await expireCache();
+    expect(await upstream(ok([OLD]))).toBe(JSON.stringify(OLD));
+  });
+
+  it("shares one GitHub request between concurrent callers", async () => {
+    const counts = await runInDurableObject(stub(), async (instance) => {
+      let calls = 0;
+      const slow = async () => {
+        calls++;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        return new Response(JSON.stringify([RELEASE]));
+      };
+      const bodies = await Promise.all([instance.latest(slow), instance.latest(slow), instance.latest(slow)]);
+      return { calls, bodies };
+    });
+    expect(counts.calls).toBe(1);
+    expect(counts.bodies).toEqual([RELEASE_BODY, RELEASE_BODY, RELEASE_BODY]);
+  });
+
+  it("returns null when GitHub fails and nothing is cached", async () => {
+    expect(await upstream(fail)).toBeNull();
+  });
+});
+
+describe("GET /v1/releases/latest", () => {
+  it("answers with the cached release as JSON, for anyone", async () => {
+    await primeCache(RELEASE_BODY);
+    const res = await latest();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/json");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    expect(await res.text()).toBe(RELEASE_BODY);
+  });
+
+  it("answers 502 when the release can't be had", async () => {
+    const down = {
+      RELEASE_CHECKS: testEnv.RELEASE_CHECKS,
+      API_STATE: { getByName: () => ({ identify: async () => "x", latest: async () => null }) },
+    } as unknown as Cloudflare.Env;
+    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`), down);
+    expect(res.status).toBe(502);
+  });
+});
+
+describe("the check's fields as headers", () => {
+  beforeEach(() => primeCache(RELEASE_BODY));
+
+  it("records the version, commit, OS, arch, platform, lang and expiry, the UTC date and one check", async () => {
+    await latest();
+    expect(points).toHaveLength(1);
+    expect(points[0]).toEqual({
+      indexes: [expect.stringMatching(/^[0-9a-f]{64}$/)],
+      blobs: ["1.0.0-beta.3", "abc1234", "linux", "x86_64", "desktop", "en", "2027-02-16", today()],
+      doubles: [1],
+    });
+  });
+
+  it("records 'unknown' for absent fields, and '' for absent lang and expiry", async () => {
+    await latest({ "CF-Connecting-IP": IP });
+    expect(points[0].blobs).toEqual(["unknown", "unknown", "unknown", "unknown", "unknown", "", "", today()]);
+  });
+
+  it("clamps each value to [A-Za-z0-9._:+-] and 40 characters", async () => {
+    await latest({
+      ...checkHeaders,
+      "X-Sonor-Version": "a".repeat(50),
+      "X-Sonor-Commit": "1.2 3/x<>",
+      "X-Sonor-OS": "<script>",
+      "X-Sonor-Lang": "pt BR/x",
+      "X-Sonor-Expires": "2027:02+16",
+    });
+    expect(points[0].blobs?.slice(0, 2)).toEqual(["a".repeat(40), "1.23x"]);
+    expect(points[0].blobs?.[2]).toBe("script");
+    expect(points[0].blobs?.[5]).toBe("ptBRx");
+    expect(points[0].blobs?.[6]).toBe("2027:02+16");
+  });
+
+  it("never records the IP, the User-Agent or other headers", async () => {
+    await latest({ ...checkHeaders, "User-Agent": "SecretAgent/1.0", "X-Forwarded-For": "198.51.100.9" });
+    const recorded = JSON.stringify(points);
+    expect(recorded).not.toContain(IP);
+    expect(recorded).not.toContain("SecretAgent");
+    expect(recorded).not.toContain("198.51.100.9");
+  });
+
+  it("still answers when the data point can't be written", async () => {
+    const broken = { ...testEnv, RELEASE_CHECKS: { writeDataPoint: () => { throw new Error("binding down"); } } } as Cloudflare.Env;
+    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(RELEASE_BODY);
+  });
+
+  it("still answers when the salt can't be read", async () => {
+    const broken = {
+      ...testEnv,
+      API_STATE: { getByName: () => ({ identify: async () => { throw new Error("do down"); }, latest: async () => RELEASE_BODY }) },
+    } as unknown as Cloudflare.Env;
+    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(RELEASE_BODY);
+  });
+});
+
+describe("monthly salt", () => {
+  beforeEach(() => primeCache(RELEASE_BODY));
+  afterEach(() => vi.useRealTimers());
+
+  // Moves the Worker's clock; only Date is faked, so the Durable Object's timers keep running.
+  const at = (iso: string) => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(iso));
+  };
+  const storedSalt = () => runInDurableObject(stub(), (_, state) => state.storage.get<{ month: string; value: string }>("salt"));
+
+  it("gives the same IP the same hash in one month, and different IPs different hashes", async () => {
+    await latest();
+    await latest();
+    await latest({ ...checkHeaders, "CF-Connecting-IP": "198.51.100.1" });
+    expect(points[0].indexes).toEqual(points[1].indexes);
+    expect(points[0].indexes?.[0]).not.toEqual(points[2].indexes?.[0]);
+  });
+
+  it("keeps the same salt across two days in one month, so a user links within the month", async () => {
+    at("2026-03-05T12:00:00Z");
+    await latest();
+    const salt = await storedSalt();
+
+    at("2026-03-20T08:00:00Z");
+    await latest();
+    expect(points[1].blobs?.[7]).toBe("2026-03-20");
+    expect(points[1].indexes).toEqual(points[0].indexes);
+    expect(await storedSalt()).toEqual(salt);
+  });
+
+  it("rotates the salt on a new month and deletes the old one", async () => {
+    at("2026-03-31T23:00:00Z");
+    await latest();
+    const oldHash = points[0].indexes?.[0];
+    const oldSalt = (await storedSalt())?.value;
+
+    at("2026-04-01T00:00:05Z");
+    await latest();
+    expect(points[1].blobs?.[7]).toBe("2026-04-01");
+    expect(points[1].indexes?.[0]).not.toEqual(oldHash);
+
+    const salt = await storedSalt();
+    expect(salt?.month).toBe("2026-04");
+    expect(salt?.value).not.toBe(oldSalt);
+    const stored = await runInDurableObject(stub(), (_, state) => state.storage.list());
+    expect(JSON.stringify([...stored.entries()])).not.toContain(oldSalt);
+  });
+
+  it("sets the alarm for the next UTC month start", async () => {
+    // A far-future December: workerd drops an alarm set in the past, and it pins the year rollover.
+    at("2099-12-15T10:00:00Z");
+    await latest();
+    expect(await runInDurableObject(stub(), (_, state) => state.storage.getAlarm())).toBe(Date.UTC(2100, 0, 1));
+  });
+
+  it("drops the salt at the next month start, even without traffic", async () => {
+    await latest();
+    const now = new Date();
+    const nextMonth = Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1);
+    expect(await runInDurableObject(stub(), (_, state) => state.storage.getAlarm())).toBe(nextMonth);
+
+    // The alarm runs after the month starts, so the stored salt is last month's by then.
+    await runInDurableObject(stub(), (_, state) => state.storage.put("salt", { month: "1999-01", value: "old" }));
+    expect(await runDurableObjectAlarm(stub())).toBe(true);
+    expect(await storedSalt()).toBeUndefined();
+  });
+
+  it("keeps this month's salt when the alarm lands after a request already started the month", async () => {
+    await latest();
+    const salt = await storedSalt();
+
+    expect(await runDurableObjectAlarm(stub())).toBe(true);
+    expect(await storedSalt()).toEqual(salt);
+  });
+
+  it("never stores the raw IP", async () => {
+    await latest();
+    const stored = await runInDurableObject(stub(), (_, state) => state.storage.list());
+    expect(JSON.stringify([...stored.entries()])).not.toContain(IP);
+  });
+});
+
+describe("other requests", () => {
+  beforeEach(() => primeCache(RELEASE_BODY));
+
+  it("answers HEAD like GET, without a body and without recording a check", async () => {
+    const res = await request("/v1/releases/latest", { method: "HEAD" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("application/json");
+    expect(await res.text()).toBe("");
+    expect(points).toHaveLength(0);
+  });
+
+  it("answers OPTIONS with 204 and the CORS headers, without recording a check", async () => {
+    const res = await request("/v1/releases/latest", { method: "OPTIONS" });
+    expect(res.status).toBe(204);
+    expect(res.headers.get("Allow")).toBe("GET, HEAD");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    expect(res.headers.get("Access-Control-Allow-Headers")).toContain("X-Sonor-Platform");
+    expect(points).toHaveLength(0);
+  });
+
+  it("rejects other methods on the release endpoint", async () => {
+    const res = await request("/v1/releases/latest", { method: "POST" });
+    expect(res.status).toBe(405);
+    expect(res.headers.get("Allow")).toBe("GET, HEAD");
+    expect(points).toHaveLength(0);
+  });
+
+  it("answers the health check with ok, without recording a check", async () => {
+    const res = await request("/v1/health");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("ok");
+    expect((await request("/v1/health", { method: "HEAD" })).status).toBe(200);
+    expect((await request("/v1/health", { method: "POST" })).status).toBe(405);
+    expect(points).toHaveLength(0);
+  });
+
+  it("404s everything else", async () => {
+    expect((await request("/")).status).toBe(404);
+    expect((await request("/v2/releases/latest")).status).toBe(404);
+    expect((await request("/v1/releases")).status).toBe(404);
+    expect(points).toHaveLength(0);
+  });
+});
