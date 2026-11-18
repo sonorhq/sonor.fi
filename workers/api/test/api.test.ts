@@ -1,4 +1,10 @@
-import { env, runDurableObjectAlarm, runInDurableObject } from "cloudflare:test";
+import {
+  createExecutionContext,
+  env,
+  runDurableObjectAlarm,
+  runInDurableObject,
+  waitOnExecutionContext,
+} from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import { CACHE_TTL_MS } from "../src/state";
@@ -7,10 +13,10 @@ const IP = "203.0.113.77";
 const BASE = "https://api.test";
 const RELEASES_URL = "https://api.github.com/repos/sonorhq/sonor/releases?per_page=10";
 
-// Newest published pre-release, with whitespace and non-ASCII that the Worker must not mangle.
+// A GitHub release object with the fields the Worker reads.
 const release = (tag: string, fields: Record<string, unknown> = {}) => ({
   tag_name: tag,
-  name: `Sonor ${tag} ☃`,
+  name: `Sonor ${tag}`,
   draft: false,
   prerelease: tag.includes("beta"),
   created_at: "2026-11-01T10:00:00Z",
@@ -18,7 +24,8 @@ const release = (tag: string, fields: Record<string, unknown> = {}) => ({
   assets: [],
   ...fields,
 });
-const RELEASE = release("v1.0.0-beta.3", { published_at: "2026-11-10T09:00:00Z" });
+// Non-ASCII in the name checks that the release reaches the client intact.
+const RELEASE = release("v1.0.0-beta.3", { name: "Sonor ☃ beta", published_at: "2026-11-10T09:00:00Z" });
 const OLD = release("v1.0.0-beta.2");
 const RELEASE_BODY = JSON.stringify(RELEASE);
 
@@ -28,6 +35,14 @@ const testEnv = {
   API_STATE: env.API_STATE,
   RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
 } as Cloudflare.Env;
+
+// Runs the Worker the way the runtime does: the response first, then the waitUntil work (recording) before the test looks.
+const run = async (req: Request, environment: Cloudflare.Env = testEnv) => {
+  const ctx = createExecutionContext();
+  const res = await worker.fetch(req, environment, ctx);
+  await waitOnExecutionContext(ctx);
+  return res;
+};
 
 const checkHeaders = {
   "CF-Connecting-IP": IP,
@@ -40,13 +55,14 @@ const checkHeaders = {
   "X-Sonor-Expires": "2027-02-16",
 };
 const latest = (headers: Record<string, string> = checkHeaders, init: RequestInit = {}) =>
-  worker.fetch(new Request(`${BASE}/v1/releases/latest`, { ...init, headers: { ...headers } }), testEnv);
-const request = (path: string, init: RequestInit = {}) => worker.fetch(new Request(`${BASE}${path}`, init), testEnv);
+  run(new Request(`${BASE}/v1/releases/latest`, { ...init, headers: { ...headers } }));
+const request = (path: string, init: RequestInit = {}) => run(new Request(`${BASE}${path}`, init));
 
 // The release lookup runs inside the Durable Object, so tests drive it there with a stand-in for GitHub.
 const ok = (body: unknown) => async () => new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
 const fail = async () => new Response("rate limited", { status: 403 });
-const upstream = (fetchFn: typeof fetch) => runInDurableObject(stub(), (instance) => instance.latest(fetchFn));
+const upstream = (fetchFn: typeof fetch, token?: string) =>
+  runInDurableObject(stub(), (instance) => instance.latest(fetchFn, token));
 
 // Expires the cached release by moving its fetch time back past the TTL.
 const expireCache = () =>
@@ -56,8 +72,6 @@ const expireCache = () =>
   });
 const primeCache = (body: string) =>
   runInDurableObject(stub(), (_, state) => state.storage.put("release", { body, fetchedAt: Date.now() }));
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 beforeEach(async () => {
   points.length = 0;
@@ -73,6 +87,18 @@ describe("GitHub release lookup", () => {
       return expected && url === RELEASES_URL ? new Response(JSON.stringify([RELEASE])) : new Response("bad request", { status: 400 });
     });
     expect(body).toBe(RELEASE_BODY);
+  });
+
+  it("sends the token as a bearer token when one is set, and no authorization otherwise", async () => {
+    const seen: (string | null)[] = [];
+    const spy: typeof fetch = async (_url, init) => {
+      seen.push(new Headers(init?.headers).get("Authorization"));
+      return new Response(JSON.stringify([RELEASE]));
+    };
+    await upstream(spy, "ghp_test");
+    await expireCache();
+    await upstream(spy);
+    expect(seen).toEqual(["Bearer ghp_test", null]);
   });
 
   it("picks the newest published pre-release, whatever order GitHub lists them in", async () => {
@@ -157,7 +183,7 @@ describe("GET /v1/releases/latest", () => {
       RELEASE_CHECKS: testEnv.RELEASE_CHECKS,
       API_STATE: { getByName: () => ({ identify: async () => "x", latest: async () => null }) },
     } as unknown as Cloudflare.Env;
-    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`), down);
+    const res = await run(new Request(`${BASE}/v1/releases/latest`), down);
     expect(res.status).toBe(502);
   });
 });
@@ -165,19 +191,19 @@ describe("GET /v1/releases/latest", () => {
 describe("the check's fields as headers", () => {
   beforeEach(() => primeCache(RELEASE_BODY));
 
-  it("records the version, commit, OS, arch, platform, lang and expiry, the UTC date and one check", async () => {
+  it("records the version, commit, OS, arch, platform, lang and expiry, and one check", async () => {
     await latest();
     expect(points).toHaveLength(1);
     expect(points[0]).toEqual({
       indexes: [expect.stringMatching(/^[0-9a-f]{64}$/)],
-      blobs: ["1.0.0-beta.3", "abc1234", "linux", "x86_64", "desktop", "en", "2027-02-16", today()],
+      blobs: ["1.0.0-beta.3", "abc1234", "linux", "x86_64", "desktop", "en", "2027-02-16"],
       doubles: [1],
     });
   });
 
   it("records 'unknown' for absent fields, and '' for absent lang and expiry", async () => {
     await latest({ "CF-Connecting-IP": IP });
-    expect(points[0].blobs).toEqual(["unknown", "unknown", "unknown", "unknown", "unknown", "", "", today()]);
+    expect(points[0].blobs).toEqual(["unknown", "unknown", "unknown", "unknown", "unknown", "", ""]);
   });
 
   it("clamps each value to [A-Za-z0-9._:+-] and 40 characters", async () => {
@@ -203,9 +229,27 @@ describe("the check's fields as headers", () => {
     expect(recorded).not.toContain("198.51.100.9");
   });
 
+  it("answers before the check is recorded, so recording never delays the response", async () => {
+    const slow = {
+      ...testEnv,
+      API_STATE: {
+        getByName: () => ({
+          identify: () => new Promise<string>((resolve) => setTimeout(() => resolve("hash"), 50)),
+          latest: async () => RELEASE_BODY,
+        }),
+      },
+    } as unknown as Cloudflare.Env;
+    const ctx = createExecutionContext();
+    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), slow, ctx);
+    expect(res.status).toBe(200);
+    expect(points).toHaveLength(0);
+    await waitOnExecutionContext(ctx);
+    expect(points).toHaveLength(1);
+  });
+
   it("still answers when the data point can't be written", async () => {
     const broken = { ...testEnv, RELEASE_CHECKS: { writeDataPoint: () => { throw new Error("binding down"); } } } as Cloudflare.Env;
-    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
+    const res = await run(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
     expect(res.status).toBe(200);
     expect(await res.text()).toBe(RELEASE_BODY);
   });
@@ -215,7 +259,7 @@ describe("the check's fields as headers", () => {
       ...testEnv,
       API_STATE: { getByName: () => ({ identify: async () => { throw new Error("do down"); }, latest: async () => RELEASE_BODY }) },
     } as unknown as Cloudflare.Env;
-    const res = await worker.fetch(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
+    const res = await run(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
     expect(res.status).toBe(200);
     expect(await res.text()).toBe(RELEASE_BODY);
   });
@@ -247,7 +291,6 @@ describe("monthly salt", () => {
 
     at("2026-03-20T08:00:00Z");
     await latest();
-    expect(points[1].blobs?.[7]).toBe("2026-03-20");
     expect(points[1].indexes).toEqual(points[0].indexes);
     expect(await storedSalt()).toEqual(salt);
   });
@@ -260,7 +303,6 @@ describe("monthly salt", () => {
 
     at("2026-04-01T00:00:05Z");
     await latest();
-    expect(points[1].blobs?.[7]).toBe("2026-04-01");
     expect(points[1].indexes?.[0]).not.toEqual(oldHash);
 
     const salt = await storedSalt();

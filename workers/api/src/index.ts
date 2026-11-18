@@ -7,6 +7,8 @@ declare global {
     interface Env {
       RELEASE_CHECKS: AnalyticsEngineDataset;
       API_STATE: DurableObjectNamespace<ApiState>;
+      // Optional fine-grained token with read-only access to public repositories, set with `wrangler secret put`.
+      GITHUB_TOKEN?: string;
     }
   }
 }
@@ -46,19 +48,19 @@ const record = async (request: Request, env: Cloudflare.Env) => {
         field(request, "Platform"),
         field(request, "Lang", ""),
         field(request, "Expires", ""),
-        new Date().toISOString().slice(0, 10),
       ],
       doubles: [1],
     });
   } catch {}
 };
 
-const latestRelease = async (request: Request, env: Cloudflare.Env): Promise<Response> => {
+const latestRelease = async (request: Request, env: Cloudflare.Env, ctx: ExecutionContext): Promise<Response> => {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS_HEADERS, Allow: ALLOW } });
   if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
 
   // HEAD answers like GET but isn't a check, so it isn't recorded.
-  if (request.method === "GET") await record(request, env);
+  // Recording runs after the response, so the check never waits on the Durable Object.
+  if (request.method === "GET") ctx.waitUntil(record(request, env));
   const release = await env.API_STATE.getByName("api").latest();
   if (release === null) return text("Release unavailable", 502);
   return new Response(request.method === "HEAD" ? null : release, {
@@ -67,9 +69,9 @@ const latestRelease = async (request: Request, env: Cloudflare.Env): Promise<Res
 };
 
 export default {
-  async fetch(request: Request, env: Cloudflare.Env): Promise<Response> {
+  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext): Promise<Response> {
     const { pathname } = new URL(request.url);
-    if (pathname === "/v1/releases/latest") return latestRelease(request, env);
+    if (pathname === "/v1/releases/latest") return latestRelease(request, env, ctx);
     if (pathname === "/v1/health") {
       if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
       return text(request.method === "HEAD" ? null : "ok", 200);

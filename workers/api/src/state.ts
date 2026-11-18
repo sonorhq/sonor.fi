@@ -64,23 +64,25 @@ export class ApiState extends DurableObject {
   }
 
   // Serves the newest GitHub release as JSON, and the last good copy when GitHub fails; null if there is none.
-  // Concurrent callers share one upstream request.
-  latest(upstream: typeof fetch = fetch): Promise<string | null> {
-    this.inFlight ??= this.load(upstream).finally(() => {
+  // Concurrent callers share one upstream request. The token defaults to the GITHUB_TOKEN secret, when one is set.
+  latest(upstream: typeof fetch = fetch, token: string | undefined = this.env.GITHUB_TOKEN): Promise<string | null> {
+    this.inFlight ??= this.load(upstream, token).finally(() => {
       this.inFlight = null;
     });
     return this.inFlight;
   }
 
-  private async load(upstream: typeof fetch): Promise<string | null> {
+  private async load(upstream: typeof fetch, token: string | undefined): Promise<string | null> {
     const cached = await this.ctx.storage.get<CachedRelease>("release");
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return cached.body;
     try {
+      const headers: Record<string, string> = {
+        "User-Agent": "sonor-api",
+        Accept: "application/vnd.github+json",
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await upstream(RELEASES_URL, {
-        headers: {
-          "User-Agent": "sonor-api",
-          Accept: "application/vnd.github+json",
-        },
+        headers,
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       });
       const release = res.ok ? newest((await res.json()) as GitHubRelease[]) : undefined;
