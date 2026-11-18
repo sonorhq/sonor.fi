@@ -1,0 +1,18 @@
+{
+  "name": "sonor.fi",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Sonor's public website (site/) and API Worker (workers/api/)",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  },
+  "devDependencies": {
+    "wrangler": "^4.152.0"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "packageManager": "pnpm@12.15.0"
+}
