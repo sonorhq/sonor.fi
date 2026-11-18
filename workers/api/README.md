@@ -53,6 +53,30 @@ The deletion is what the code does, not an unrecoverable erase.
 Observability is disabled in `wrangler.jsonc`, and the code never logs requests, headers, IPs or the salt.
 Cloudflare itself still sees each request's IP for its own edge analytics and security events, and `wrangler tail` streams live request metadata while it runs. Neither is kept by this code.
 
+## Querying the counts
+
+`scripts/stats.sh` (run from `workers/api`) reads the dataset through the Analytics Engine SQL API. It needs `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` in the environment, plus `curl`, and `jq` for the table.
+The token must be an API token with **Account Analytics: Read** on the account. The account owner creates it in the Cloudflare dashboard, and it's only ever exported in the shell, never written to a file:
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=...      # from the dashboard's account overview
+export CLOUDFLARE_API_TOKEN=...       # Account Analytics: Read
+scripts/stats.sh daily 14
+```
+
+| Command | Prints |
+| --- | --- |
+| `daily [days]` | checks per day |
+| `os [days]` | checks and unique users per operating system |
+| `versions [days]` | checks and unique users per app version |
+| `platforms [days]` | checks and unique users per platform (`desktop`, `android`, `ios`) |
+| `users [YYYY-MM]` | unique users and checks in one UTC month (default: this month) |
+
+`days` defaults to 30. `--json` prints the raw API response instead of the table, and `--dry-run` prints the SQL without calling the API (no token needed).
+
+Checks are summed with `_sample_interval`, so they stay correct if sampling is ever on. Users are distinct `index1` hashes.
+The hashes are per month: the same person gets a different hash every UTC month, so they're only comparable inside one month. `users` counts one month, and the `os`, `versions` and `platforms` columns for a window that crosses a month boundary count a person once per month they appear in. Read them as approximate for such windows.
+
 ## Optional GitHub token
 
 Without a token, GitHub allows 60 unauthenticated requests an hour per IP. The five-minute cache keeps this Worker far below that, but a token raises the limit.
@@ -69,6 +93,7 @@ The Worker sends it as `Authorization: Bearer` when it's set, and sends no autho
 - `src/index.ts`: routing, header clamping, the data point (recorded through `waitUntil`).
 - `src/state.ts`: the `ApiState` Durable Object (SQLite): the monthly salt, the cached release, the optional GitHub token.
 - `wrangler.jsonc`: the route (`api.sonor.fi`, no `workers.dev` URL), bindings (`API_STATE`, `RELEASE_CHECKS`), the SQLite migration, observability off.
+- `scripts/stats.sh`: prints the release check counts from the Analytics Engine dataset (see "Querying the counts").
 - `test/api.test.ts`: the tests, run inside workerd with `@cloudflare/vitest-plugin`. GitHub is stubbed, so they need no network.
 
 ## Local development
