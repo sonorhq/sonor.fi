@@ -94,7 +94,7 @@ pnpm exec wrangler login            # or export CLOUDFLARE_API_TOKEN and CLOUDFL
 pnpm --filter sonor-api exec wrangler deploy
 ```
 
-- The website is a separate Worker with static assets (`site/wrangler.jsonc`, the successor of Pages); `wrangler deploy` in `site/` creates it and its `sonor.fi` and `www.sonor.fi` custom domains.
+- The website is a separate Worker with static assets (`site/wrangler.jsonc`, the successor of Pages); `wrangler deploy` in `site/` creates it and its `sonor.fi` and `www.sonor.fi` custom domains. Its Worker (`site/src/index.ts`) redirects http to https and www to the apex, and adds HSTS and the other security headers to the page.
 - The Worker deploy creates the Durable Object namespace, the `api.sonor.fi` DNS record and certificate. The zone `sonor.fi` must be on this Cloudflare account.
 - The Analytics Engine dataset is created on the first write, so it needs no setup.
 
