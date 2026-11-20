@@ -72,7 +72,7 @@ async function writeStored(cache: Cache | undefined, key: Request, stored: Store
  */
 export async function latestRelease(
   fetcher: typeof fetch = fetch,
-  cache: Cache | undefined = typeof caches === "undefined" ? undefined : caches.default,
+  cache: Cache | undefined = typeof caches === "undefined" ? undefined : (caches as CacheStorage & { default: Cache }).default,
   now: () => number = Date.now,
 ): Promise<Release | null> {
   const key = new Request(CACHE_KEY);

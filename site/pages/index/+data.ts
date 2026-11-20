@@ -1,7 +1,7 @@
 // Environment: server
 // Runs on the Worker for each request to /. The guess from the request headers is sent to the
 // page, which refines it in the browser; the file list is sent so both sides can pick the file.
-import { detectPlatform, hintsFromHeaders, type Platform } from "../../src/platform";
+import { detectPlatform, hintsFromHeaders, parseOS, type Platform } from "../../src/platform";
 import {
   RELEASES_PAGE,
   checksumsHref,
@@ -16,7 +16,10 @@ export { data };
 export type Data = Awaited<ReturnType<typeof data>>;
 export type Downloads = NonNullable<Data["downloads"]>;
 
-async function data(pageContext: { headers?: Record<string, string> }): Promise<{
+async function data(pageContext: {
+  headers?: Record<string, string>;
+  urlParsed?: { search?: Record<string, string> };
+}): Promise<{
   platform: Platform;
   downloads: {
     version: string;
@@ -26,7 +29,10 @@ async function data(pageContext: { headers?: Record<string, string> }): Promise<
     sources: Pick<ReleaseAsset, "name" | "browser_download_url" | "size">[];
   } | null;
 }> {
-  const platform = detectPlatform(hintsFromHeaders(pageContext.headers ?? {}));
+  const detected = detectPlatform(hintsFromHeaders(pageContext.headers ?? {}));
+  // ?os= picks the platform for the page (and the tab), for testing; anything else is ignored.
+  const override = parseOS(pageContext.urlParsed?.search?.os);
+  const platform: Platform = override ? { ...detected, os: override } : detected;
   const release = await latestRelease();
   if (!release) return { platform, downloads: null };
 

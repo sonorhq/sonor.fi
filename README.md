@@ -27,20 +27,15 @@ pnpm -r build
 
 The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnpm --filter sonor-site build` before deploying by hand.
 
-## Website: brand and screenshots
+## Website: design, brand and screenshots
 
-- Colours: the tokens at the top of `site/src/styles.css` (the Hi-Fi palette: walnut, cream, burnt orange, teal), and the theme colours in `site/src/brand.ts`. Keep the two in step. Text pairs are checked against WCAG AA in both schemes; the light-scheme link colour is a deeper orange than the button fill for that reason.
-- Logo: one component, `site/src/components/Logo.tsx`, which picks `site/public/brand/lockup-light.svg` or `lockup-dark.svg` by scheme.
-- Screenshots: `site/src/screenshots.ts` is the one data file. To add a shot, put its four files in `site/public/screenshots/` (below), then set `ready: true` and write its `alt` text. Until then a placeholder frame shows.
-  - `<id>-desktop-light.png` and `<id>-desktop-dark.png`: 16:10, 1600 × 1000 px.
-  - `<id>-phone-light.png` and `<id>-phone-dark.png`: 9:19.5, 900 × 1950 px.
-  - The ids are `library`, `now-playing` and `car`. Keep each file under about 400 KB; if they are WebP, change the extension in `screenshots.ts`.
-
-### Brand files
-
-The brand kit's files are copied into `site/public/`: the favicons (`favicon.svg`, `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png`), the horizontal lockups (`brand/lockup-light.svg` and `brand/lockup-dark.svg`), and the 1200 × 630 Open Graph card (`sonor-social-1200x630.png`). The kit's Outfit wordmark is outlined, so the site needs no font for the logo.
-
-When the kit changes, copy the same files again under the same names, and keep `site/src/brand.ts` and the colour tokens in `site/src/styles.css` in step with the kit's `tokens/brand.css`.
+- The site is dark only, in the Hi-Fi palette from the brand kit (espresso and walnut, cream type, orange for the primary action and the live tab). The colours are the variables at the top of `site/src/styles.css`, which match the kit's `tokens/brand.css`; `site/src/brand.ts` holds the browser theme colour. Keep them in step with the kit.
+- The hero is the kit's stacked lockup, `site/public/brand/lockup-stacked.svg`, which is the kit's file with the mark's spin rule added so the record turns (it stops under `prefers-reduced-motion`). The footer shows `site/public/brand/mark.svg`. `site/src/components/Logo.tsx` is the one place that uses them.
+- Downloads: the primary button and the tab pre-selection follow the visitor's OS (from the request, then the browser). `?os=windows` (or macos, linux, android, ios) picks a platform for testing.
+- Screenshots: `site/src/screenshots.ts` is the one data file. The page's pair shows its first entry. To add the pair, put two files in `site/public/screenshots/` (below), then set `ready: true` and write the entry's `alt` text. Until then the page shows a silhouette of the player.
+  - `<id>-desktop.png`: 16:10, 1600 × 1000 px.
+  - `<id>-phone.png`: 9:19.5, 900 × 1950 px.
+  - The ids are `library`, `now-playing` and `car`. Keep each file under about 400 KB.
 
 ## Licence
 

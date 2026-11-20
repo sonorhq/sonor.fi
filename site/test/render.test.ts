@@ -73,24 +73,27 @@ describe("the rendered pages", () => {
   it("offers the Windows installer as the primary download to a Windows visitor", async () => {
     const { html } = await render("/", { "user-agent": UA.windows, "sec-ch-ua-platform": '"Windows"' });
     expect(html).toContain(
-      'href="https://github.com/sonorhq/sonor/releases/download/v0.1.0-beta.23/sonor-0.1.0-beta.23-d265ff1-windows-setup.exe" download="">Download for Windows</a>',
+      'href="https://github.com/sonorhq/sonor/releases/download/v0.1.0-beta.23/sonor-0.1.0-beta.23-d265ff1-windows-setup.exe" download="">',
     );
+    expect(html).toContain("Download for Windows</a>");
   });
 
   it("offers the disk image to a Mac visitor", async () => {
     const { html } = await render("/", { "user-agent": UA.mac });
-    expect(html).toContain("sonor-0.1.0-beta.23-d265ff1-macos.dmg\" download=\"\">Download for macOS</a>");
+    expect(html).toContain('sonor-0.1.0-beta.23-d265ff1-macos.dmg" download="">');
+    expect(html).toContain("Download for macOS</a>");
   });
 
   it("says iOS has no download yet, without a link", async () => {
     const { html } = await render("/", { "user-agent": UA.iphone });
-    expect(html).toContain("iOS: TestFlight beta by invitation, App Store coming.");
-    expect(html).not.toContain("Download for iOS");
+    expect(html).toContain("iPhone beta, by invitation");
+    expect(html).toContain("TestFlight beta by invitation · App Store coming");
+    expect(html).not.toContain("Download for iPhone");
   });
 
-  it("gives no primary pick to an unknown system, but keeps the full list", async () => {
+  it("points an unknown system at macOS, and keeps the full list", async () => {
     const { html } = await render("/");
-    expect(html).not.toMatch(/class="btn btn-primary"/);
+    expect(html).toContain("Download for macOS</a>");
     expect(html).toContain("sonor-0.1.0-beta.23-d265ff1-macos.dmg");
   });
 
@@ -108,14 +111,15 @@ describe("the rendered pages", () => {
   it("says so when the release has no build for the visitor's architecture", async () => {
     const { html } = await render("/", { "user-agent": "Mozilla/5.0 (X11; Linux aarch64; rv:131.0) Gecko/20100101 Firefox/131.0" });
     expect(html).toContain("No Linux ARM64 build in v0.1.0-beta.23; ");
-    expect(html).not.toContain("Download for Linux</a>");
+    expect(html).toContain('class="btn btn-primary" href="#download"');
   });
 
   it("says the downloads are unavailable and links to GitHub when the release can't be read", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 503 })));
     const { html } = await render("/", { "user-agent": UA.windows });
     expect(html).toContain("Downloads are unavailable right now.");
-    expect(html).toContain('href="https://github.com/sonorhq/sonor/releases">Download for Windows</a>');
+    expect(html).toContain('href="https://github.com/sonorhq/sonor/releases"');
+    expect(html).toContain("Download for Windows</a>");
     expect(html).toContain("See all releases on GitHub.");
   });
 

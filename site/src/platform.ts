@@ -21,6 +21,13 @@ export interface PlatformHints {
   touchPoints?: number;
 }
 
+const OSES: OS[] = ["windows", "macos", "linux", "android", "ios"];
+
+/** The platform named in ?os=, which lets a visitor (or a test) pick a tab; anything else is ignored. */
+export function parseOS(value: string | null | undefined): OS | undefined {
+  return OSES.find((os) => os === value);
+}
+
 const unquote = (value: string | null): string | undefined => value?.replace(/^"|"$/g, "") || undefined;
 
 /** Reads the client hints and the User-Agent from a request. */

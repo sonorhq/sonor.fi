@@ -1,76 +1,102 @@
 import { useData } from "vike-react/useData";
-import { DownloadList, PrimaryDownload, usePlatform } from "../../src/components/Download";
+import { DownloadTabs, PrimaryDownload, usePlatform } from "../../src/components/Downloads";
+import { Lockup } from "../../src/components/Logo";
 import { Screenshots } from "../../src/components/Screenshots";
 import type { Data } from "./+data";
 
 const FEATURES = [
   {
-    title: "Subsonic and Navidrome",
-    text: "Connect to your Subsonic, OpenSubsonic or Navidrome server and browse the library you already have.",
-  },
-  {
     title: "Offline downloads",
-    text: "Keep albums and songs on the device and play them without a connection.",
+    text: "Keep albums and songs on the device and play them with no connection.",
+    where: "Desktop · Android · iPhone",
   },
   {
     title: "Gapless playback",
-    text: "Tracks run into each other without the silence between them.",
+    text: "Live albums and continuous mixes run straight through, with no silence between tracks.",
+    where: "Everywhere",
   },
   {
     title: "CarPlay and Android Auto",
-    text: "Browse and play from the car's screen, on iPhone with CarPlay and on Android with Android Auto.",
+    text: "Browse your library and play from the car's own screen.",
+    where: "iPhone · Android",
   },
   {
     title: "Lyrics",
-    text: "See the lyrics of the song that is playing.",
+    text: "Follow the words of the song that's playing.",
+    where: "Everywhere",
   },
   {
     title: "Media keys and Now Playing",
-    text: "Use your keyboard's media keys on the desktop, and see the track in the system's Now Playing or media controls.",
+    text: "Your keyboard's media keys work, and the track shows up in the system's Now Playing controls.",
+    where: "macOS · Windows · Linux",
   },
 ];
 
 export default function Page() {
   const { platform: serverPlatform, downloads } = useData<Data>();
   const platform = usePlatform(serverPlatform);
+  const version = downloads?.version;
 
   return (
     <>
-      <section className="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">Sonor</h1>
-        <p className="lead">
-          A music player for your Subsonic and Navidrome server, on desktop, Android and iPhone. Your library, your
-          server, and the same player in the car.
-        </p>
-        <div className="actions">
-          <PrimaryDownload platform={platform} downloads={downloads} />
-          <a className="btn btn-secondary" href="#downloads">All downloads</a>
+      <section className="hero">
+        <div className="col">
+          <h1 style={{ margin: 0 }}>
+            <Lockup />
+          </h1>
+          <p className="tagline rise d1">
+            A music player for your own Subsonic or Navidrome server. <span>On your desktop, your phone and in the car.</span>
+          </p>
+          <span className="pill rise d2">
+            <i aria-hidden="true" />
+            {version ? `Public beta · ${version}` : "Public beta"}
+          </span>
+          <div className="actions rise d3">
+            <PrimaryDownload platform={platform} downloads={downloads} />
+            <a className="btn btn-ghost" href="#download">
+              Other platforms
+            </a>
+          </div>
+          <a className="scroll-cue" href="#see">
+            See it
+          </a>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="features-title">
-        <h2 id="features-title">What it does</h2>
-        <ul className="features">
-          {FEATURES.map((f) => (
-            <li key={f.title} className="card">
-              <h3>{f.title}</h3>
-              <p>{f.text}</p>
-            </li>
-          ))}
-        </ul>
+      <section id="see" style={{ paddingTop: "2rem" }}>
+        <div className="col">
+          <h2>Your library, wherever you listen</h2>
+          <p className="lede">The same player on macOS, Windows, Linux, Android and iPhone, talking straight to your server.</p>
+        </div>
+        <div className="col wide">
+          <Screenshots />
+        </div>
       </section>
 
-      <section className="section" aria-labelledby="see-title">
-        <h2 id="see-title">See it</h2>
-        <Screenshots />
+      <section id="features">
+        <div className="col">
+          <h2>Made for listening</h2>
+          <p className="lede">
+            The things a player has to get right, for libraries you host yourself on Subsonic, OpenSubsonic or Navidrome.
+          </p>
+          <ul className="features">
+            {FEATURES.map((feature) => (
+              <li key={feature.title}>
+                <h3>{feature.title}</h3>
+                <p>{feature.text}</p>
+                <span className="where">{feature.where}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
-      <section className="section" id="downloads" aria-labelledby="downloads-title">
-        <h2 id="downloads-title">Download</h2>
-        <p className="lead">
-          Sonor runs on Windows, macOS, Linux, Android and iPhone. The iPhone app is a TestFlight beta for now.
-        </p>
-        <DownloadList downloads={downloads} />
+      <section id="download">
+        <div className="col">
+          <h2>Get Sonor</h2>
+          <p className="lede">{version ? `Public beta ${version}. Pick your platform.` : "Pick your platform."}</p>
+          <DownloadTabs platform={platform} downloads={downloads} />
+        </div>
       </section>
     </>
   );

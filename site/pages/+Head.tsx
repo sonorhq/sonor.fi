@@ -30,9 +30,8 @@ export default function Head() {
     <>
       {/* Vike adds the charset, viewport, title, description, og:title and og:description from the config. */}
       {errorTitle ? <title>{errorTitle}</title> : null}
-      <meta name="color-scheme" content="dark light" />
-      <meta name="theme-color" content={THEME_COLOR.dark} media="(prefers-color-scheme: dark)" />
-      <meta name="theme-color" content={THEME_COLOR.light} media="(prefers-color-scheme: light)" />
+      <meta name="color-scheme" content="dark" />
+      <meta name="theme-color" content={THEME_COLOR} />
 
       <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       <link rel="icon" href="/favicon.ico" sizes="any" />
