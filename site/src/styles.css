@@ -1,0 +1,282 @@
+:root {
+  color-scheme: dark light;
+  --ink: #15141b;
+  --surface: #1f1d28;
+  --text: #f4f1ff;
+  --muted: #bdb8cc;
+  --accent: #f892c3;
+  --accent-hover: #ffb0d4;
+  --on-accent: #15141b;
+  --focus: #c9b8ff;
+  --line: #2e2b3a;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --ink: #faf8ff;
+    --surface: #ffffff;
+    --text: #1d1a26;
+    --muted: #5c5670;
+    --accent: #a4286a;
+    --accent-hover: #8a1f59;
+    --on-accent: #ffffff;
+    --focus: #5b3fd1;
+    --line: #e4e0ef;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ink);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(60rem 36rem at 50% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    var(--ink);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+h3 {
+  font-size: 1.125rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+code {
+  font-size: 0.9em;
+}
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 0.5rem;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+.site-header,
+.site-footer,
+main {
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+/* The lockup is drawn for a dark background, so it keeps one in both schemes. */
+.brand {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #15141b;
+}
+
+.logo {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+}
+
+.site-header nav,
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+main {
+  flex: 1;
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  max-width: 40rem;
+  font-size: 1.25rem;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid var(--accent);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-secondary:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.detail,
+.note {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.section {
+  padding-top: 1.5rem;
+  padding-bottom: 2.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.narrow {
+  max-width: 40rem;
+}
+
+.features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+.card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+.card p {
+  margin-top: 0.5rem;
+  color: var(--muted);
+}
+
+.platforms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.platforms span {
+  color: var(--muted);
+}
+
+.platform-files {
+  margin-top: 1.5rem;
+}
+
+.platform-files ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.platform-files li {
+  margin: 0.35rem 0;
+}
+
+.site-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+}
