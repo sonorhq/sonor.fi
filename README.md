@@ -38,9 +38,9 @@ The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnp
 
 ### Brand files
 
-- The kit's files are copied into `site/public/`: `favicon.svg`, `favicon-16.png`, `favicon-32.png` and `apple-touch-icon.png` (from the kit's `favicon/`), and `brand/lockup-light.svg` and `brand/lockup-dark.svg` (from its horizontal lockups).
-- TODO, waiting for the Outfit kit (the wordmark is being redone in Outfit under the same file names): copy again `lockup/sonor-horizontal-on-light.svg` and `-on-dark.svg` into `site/public/brand/` as `lockup-light.svg` and `lockup-dark.svg`, and `og/sonor-og.png` into `site/public/sonor-social-1200x630.png`. Then point `site/pages/+Head.tsx` at the new OG size (1200 × 630), delete `site/public/sonor-social-1280x640.png`, and update the `og:image` dimensions there.
-- `site/src/brand.ts` and the colour tokens in `site/src/styles.css` already match the kit's `tokens/brand.css`; keep them in step if the kit changes.
+The brand kit's files are copied into `site/public/`: the favicons (`favicon.svg`, `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png`), the horizontal lockups (`brand/lockup-light.svg` and `brand/lockup-dark.svg`), and the 1200 × 630 Open Graph card (`sonor-social-1200x630.png`). The kit's Outfit wordmark is outlined, so the site needs no font for the logo.
+
+When the kit changes, copy the same files again under the same names, and keep `site/src/brand.ts` and the colour tokens in `site/src/styles.css` in step with the kit's `tokens/brand.css`.
 
 ## Licence
 

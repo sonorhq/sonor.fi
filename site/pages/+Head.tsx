@@ -2,7 +2,7 @@ import { usePageContext } from "vike-react/usePageContext";
 import { THEME_COLOR } from "../src/brand";
 
 const SITE = "https://sonor.fi";
-const IMAGE = `${SITE}/sonor-social-1280x640.png`;
+const IMAGE = `${SITE}/sonor-social-1200x630.png`;
 const IMAGE_ALT = "The Sonor logo: a treble clef on a staff, in neon pink and lavender, on a dark background.";
 
 export default function Head() {
@@ -44,8 +44,8 @@ export default function Head() {
       <meta property="og:site_name" content="Sonor" />
       <meta property="og:url" content={`${SITE}${urlPathname}`} />
       <meta property="og:image" content={IMAGE} />
-      <meta property="og:image:width" content="1280" />
-      <meta property="og:image:height" content="640" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={IMAGE_ALT} />
 
       <meta name="twitter:card" content="summary_large_image" />

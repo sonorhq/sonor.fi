@@ -100,7 +100,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("<title>Sonor: a music player for Subsonic and Navidrome</title>");
     expect(html).toContain('<meta name="description" content="Sonor plays your Subsonic and Navidrome library');
     expect(html).toContain('<link rel="canonical" href="https://sonor.fi/"/>');
-    expect(html).toContain('<meta property="og:image" content="https://sonor.fi/sonor-social-1280x640.png"/>');
+    expect(html).toContain('<meta property="og:image" content="https://sonor.fi/sonor-social-1200x630.png"/>');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image"/>');
     expect(html).toContain('"@type":"SoftwareApplication"');
   });
