@@ -76,7 +76,7 @@ describe("local development", () => {
 describe("assets and pages", () => {
   it("serves a file from the assets with the security headers, without rendering", async () => {
     const { get, render } = setup({ assetStatus: 200 });
-    const res = await get("https://sonor.fi/sonor-lockup-1000.png");
+    const res = await get("https://sonor.fi/favicon-32.png");
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("image/png");
     expect(res.headers.get("Strict-Transport-Security")).toBe(HSTS);

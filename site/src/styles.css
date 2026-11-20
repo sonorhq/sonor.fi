@@ -1,27 +1,30 @@
+/* The Hi-Fi palette: walnut, cream, burnt orange and teal. Colours live here and in src/brand.ts. */
 :root {
   color-scheme: dark light;
-  --ink: #15141b;
-  --surface: #1f1d28;
-  --text: #f4f1ff;
-  --muted: #bdb8cc;
-  --accent: #f892c3;
-  --accent-hover: #ffb0d4;
-  --on-accent: #15141b;
-  --focus: #c9b8ff;
-  --line: #2e2b3a;
+  --ink: #2a1a10; /* walnut: the page */
+  --surface: #3a2718; /* cards and frames */
+  --text: #f3e6d1; /* cream */
+  --muted: #d2bc9c;
+  --link: #ee8a3c; /* orange text: links and accents */
+  --fill: #ee8a3c; /* button fill */
+  --fill-hover: #f5a060;
+  --on-fill: #2a1a10;
+  --second: #7fb7a8; /* teal: focus rings and decoration */
+  --line: #4a3524;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --ink: #faf8ff;
-    --surface: #ffffff;
-    --text: #1d1a26;
-    --muted: #5c5670;
-    --accent: #a4286a;
-    --accent-hover: #8a1f59;
-    --on-accent: #ffffff;
-    --focus: #5b3fd1;
-    --line: #e4e0ef;
+    --ink: #f3e6d1;
+    --surface: #fbf5eb;
+    --text: #2a1a10;
+    --muted: #5c4636;
+    --link: #a64a17; /* the burnt orange, deepened to pass AA as text */
+    --fill: #b2541a;
+    --fill-hover: #8f3d12;
+    --on-fill: #fbf5eb;
+    --second: #3f7d6e;
+    --line: #e2d2b8;
   }
 }
 
@@ -40,7 +43,7 @@ body {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(60rem 36rem at 50% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+    radial-gradient(60rem 36rem at 50% -8%, color-mix(in srgb, var(--link) 14%, transparent), transparent 70%),
     var(--ink);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -71,11 +74,11 @@ p {
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
 }
 
 a:focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 3px solid var(--second);
   outline-offset: 3px;
 }
 
@@ -88,8 +91,8 @@ code {
   left: 16px;
   top: -100px;
   padding: 0.5rem 1rem;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--fill);
+  color: var(--on-fill);
   border-radius: 0.5rem;
 }
 
@@ -177,7 +180,7 @@ main {
 .btn {
   display: inline-block;
   padding: 0.75rem 1.25rem;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--link);
   border-radius: 0.5rem;
   font-weight: 600;
   text-decoration: none;
@@ -185,17 +188,19 @@ main {
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--fill);
+  border-color: var(--fill);
+  color: var(--on-fill);
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background: var(--fill-hover);
+  border-color: var(--fill-hover);
+  color: var(--on-fill);
 }
 
 .btn-secondary:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--link) 12%, transparent);
 }
 
 .detail,
@@ -238,6 +243,71 @@ main {
 .card p {
   margin-top: 0.5rem;
   color: var(--muted);
+}
+
+/* Screenshots: a desktop frame (16:10) beside a phone frame (9:19.5). Placeholders keep the same shape. */
+.see-grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+}
+
+.shot {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shot-frames {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.shot figcaption {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.frame {
+  margin: 0;
+  display: block;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.frame-desktop {
+  flex: 1 1 auto;
+  aspect-ratio: 16 / 10;
+  border-radius: 0.6rem;
+}
+
+.frame-phone {
+  flex: 0 0 28%;
+  aspect-ratio: 9 / 19.5;
+  border-radius: 1.4rem;
+}
+
+.frame-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0.75rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  background: repeating-linear-gradient(135deg, transparent 0 12px, var(--line) 12px 13px);
 }
 
 .platform-files {
