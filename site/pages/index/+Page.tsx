@@ -1,5 +1,5 @@
 import { useData } from "vike-react/useData";
-import { DownloadTabs, PrimaryDownload, usePlatform } from "../../src/components/Downloads";
+import { DownloadTabs, PrimaryButton, PrimaryMeta, usePlatform } from "../../src/components/Downloads";
 import { Lockup } from "../../src/components/Logo";
 import { Screenshots } from "../../src/components/Screenshots";
 import type { Data } from "./+data";
@@ -52,10 +52,13 @@ export default function Page() {
             {version ? `Public beta · ${version}` : "Public beta"}
           </span>
           <div className="actions rise d3">
-            <PrimaryDownload platform={platform} downloads={downloads} />
+            <PrimaryButton platform={platform} downloads={downloads} />
             <a className="btn btn-ghost" href="#download">
               Other platforms
             </a>
+          </div>
+          <div className="rise d3">
+            <PrimaryMeta platform={platform} downloads={downloads} />
           </div>
           <a className="scroll-cue" href="#see">
             See it

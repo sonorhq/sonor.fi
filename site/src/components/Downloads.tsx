@@ -51,60 +51,66 @@ function DownloadIcon() {
   );
 }
 
-/** The primary button: the file for the visitor's platform, with its format and size. */
-export function PrimaryDownload({ platform, downloads }: { platform: Platform; downloads: Downloads | null }) {
+interface Primary {
+  label: string;
+  href: string;
+  /** True when the link is a file to download, not a page. */
+  file: boolean;
+  meta: string;
+}
+
+/** What the primary button offers the visitor's platform; unknown systems get macOS. */
+function primaryFor(platform: Platform, downloads: Downloads | null): Primary {
   const os = tabFor(platform);
   const name = OS_NAMES[os];
-
   if (os === "ios") {
-    return (
-      <div className="primary">
-        <a className="btn btn-primary" href="#download">
-          <DownloadIcon />
-          iPhone beta, by invitation
-        </a>
-        <p className="meta">TestFlight beta by invitation · App Store coming</p>
-      </div>
-    );
+    return {
+      label: "iPhone beta, by invitation",
+      href: "#download",
+      file: false,
+      meta: "TestFlight beta by invitation · App Store coming",
+    };
   }
   if (!downloads) {
-    return (
-      <div className="primary">
-        <a className="btn btn-primary" href={RELEASES_PAGE}>
-          <DownloadIcon />
-          {`Download for ${name}`}
-        </a>
-        <p className="meta">Downloads are unavailable right now. Get the latest build on GitHub.</p>
-      </div>
-    );
+    return {
+      label: `Download for ${name}`,
+      href: RELEASES_PAGE,
+      file: false,
+      meta: "Downloads are unavailable right now. Get the latest build on GitHub.",
+    };
   }
-
   const file = pickFile(downloads.files, { os, arch: platform.arch });
   if (!file) {
     const arch = ARCH_NAMES[platform.arch] ? ` ${ARCH_NAMES[platform.arch]}` : "";
-    return (
-      <div className="primary">
-        <a className="btn btn-primary" href="#download">
-          <DownloadIcon />
-          {`Download for ${name}`}
-        </a>
-        <p className="meta">
-          {`No ${name}${arch} build in ${downloads.version}; `}
-          <a href="#download">see all downloads</a>.
-        </p>
-      </div>
-    );
+    return {
+      label: `Download for ${name}`,
+      href: "#download",
+      file: false,
+      meta: `No ${name}${arch} build in ${downloads.version}; see all downloads.`,
+    };
   }
+  return {
+    label: `Download for ${name}`,
+    href: file.href,
+    file: true,
+    meta: [FORMAT_LABELS[file.format], size(file.size)].filter(Boolean).join(" · "),
+  };
+}
 
+/** The primary button in the hero row. */
+export function PrimaryButton({ platform, downloads }: { platform: Platform; downloads: Downloads | null }) {
+  const primary = primaryFor(platform, downloads);
   return (
-    <div className="primary">
-      <a className="btn btn-primary" href={file.href} download>
-        <DownloadIcon />
-        {`Download for ${name}`}
-      </a>
-      <p className="meta">{[FORMAT_LABELS[file.format], size(file.size)].filter(Boolean).join(" · ")}</p>
-    </div>
+    <a className="btn btn-primary" href={primary.href} download={primary.file || undefined}>
+      <DownloadIcon />
+      {primary.label}
+    </a>
   );
+}
+
+/** The line under the hero row: the file's format and size, or the reason there is no file. */
+export function PrimaryMeta({ platform, downloads }: { platform: Platform; downloads: Downloads | null }) {
+  return <p className="meta">{primaryFor(platform, downloads).meta}</p>;
 }
 
 /** The platform tabs, with one panel per platform. Every panel is in the HTML; the tabs only show one. */
