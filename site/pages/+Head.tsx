@@ -8,7 +8,9 @@ const IMAGE_ALT = "The Sonor logo: a treble clef on a staff, in neon pink and la
 export default function Head() {
   const { urlPathname, is404, errorWhileRendering, config } = usePageContext();
   const indexable = !is404 && !errorWhileRendering;
-  const title = (config.title as string | undefined) ?? "Sonor";
+  // Vike titles every page from its config; the error page has none, so it's titled here.
+  const errorTitle = is404 ? "Page not found · Sonor" : errorWhileRendering ? "Something went wrong · Sonor" : undefined;
+  const title = errorTitle ?? (config.title as string | undefined) ?? "Sonor";
   const description = (config.description as string | undefined) ?? "";
   const home = urlPathname === "/";
 
@@ -26,6 +28,7 @@ export default function Head() {
   return (
     <>
       {/* Vike adds the charset, viewport, title, description, og:title and og:description from the config. */}
+      {errorTitle ? <title>{errorTitle}</title> : null}
       <meta name="color-scheme" content="dark light" />
       <meta name="theme-color" content={THEME_COLOR.dark} media="(prefers-color-scheme: dark)" />
       <meta name="theme-color" content={THEME_COLOR.light} media="(prefers-color-scheme: light)" />

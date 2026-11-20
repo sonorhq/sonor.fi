@@ -117,6 +117,20 @@ describe("latestRelease", () => {
     expect((await latestRelease(limited, cache, () => 2 * HOUR))?.tag_name).toBe("v0.1.0-beta.23");
   });
 
+  it("asks GitHub at most once a minute while it fails, and serves the copy meanwhile", async () => {
+    const { cache } = memoryCache();
+    await latestRelease(ok([beta23]) as unknown as typeof fetch, cache, () => 0);
+    const failing = down();
+    const at = (ms: number) => latestRelease(failing as unknown as typeof fetch, cache, () => 11 * MIN + ms);
+
+    expect((await at(0))?.tag_name).toBe("v0.1.0-beta.23");
+    expect((await at(30 * 1000))?.tag_name).toBe("v0.1.0-beta.23");
+    expect(failing).toHaveBeenCalledTimes(1);
+
+    expect((await at(61 * 1000))?.tag_name).toBe("v0.1.0-beta.23");
+    expect(failing).toHaveBeenCalledTimes(2);
+  });
+
   it("replaces the stale copy when GitHub answers with a newer release", async () => {
     const { cache } = memoryCache();
     await latestRelease(ok([beta22]) as unknown as typeof fetch, cache, () => 0);

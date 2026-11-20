@@ -1,7 +1,6 @@
 import type { Config } from "vike/types";
 
-// One page for a missing address and for a render failure; the page body says which.
+// No title here: Head.tsx titles the error page, since a missing address and a failed render differ.
 export default {
-  title: "Sonor",
   description: "Sonor's website. This page is not available.",
 } satisfies Config;

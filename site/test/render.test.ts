@@ -130,6 +130,7 @@ describe("the rendered pages", () => {
   it("renders the 404 page with a 404 status and no index", async () => {
     const { status, html } = await render("/does-not-exist");
     expect(status).toBe(404);
+    expect(html).toContain("<title>Page not found · Sonor</title>");
     expect(html).toContain("<h1>Page not found</h1>");
     expect(html).toContain('<meta name="robots" content="noindex"/>');
   });
