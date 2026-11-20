@@ -30,7 +30,7 @@ The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnp
 ## Website: brand and screenshots
 
 - Colours: the tokens at the top of `site/src/styles.css` (the Hi-Fi palette: walnut, cream, burnt orange, teal), and the theme colours in `site/src/brand.ts`. Keep the two in step. Text pairs are checked against WCAG AA in both schemes; the light-scheme link colour is a deeper orange than the button fill for that reason.
-- Logo: one component, `site/src/components/Logo.tsx`, which picks `site/public/brand/lockup-light.svg` or `lockup-dark.svg` by scheme. The current files are provisional.
+- Logo: one component, `site/src/components/Logo.tsx`, which picks `site/public/brand/lockup-light.svg` or `lockup-dark.svg` by scheme.
 - Screenshots: `site/src/screenshots.ts` is the one data file. To add a shot, put its four files in `site/public/screenshots/` (below), then set `ready: true` and write its `alt` text. Until then a placeholder frame shows.
   - `<id>-desktop-light.png` and `<id>-desktop-dark.png`: 16:10, 1600 × 1000 px.
   - `<id>-phone-light.png` and `<id>-phone-dark.png`: 9:19.5, 900 × 1950 px.

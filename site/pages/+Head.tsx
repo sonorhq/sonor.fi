@@ -3,7 +3,8 @@ import { THEME_COLOR } from "../src/brand";
 
 const SITE = "https://sonor.fi";
 const IMAGE = `${SITE}/sonor-social-1200x630.png`;
-const IMAGE_ALT = "The Sonor logo: a treble clef on a staff, in neon pink and lavender, on a dark background.";
+const IMAGE_ALT =
+  "A cream turntable with an orange tonearm on walnut, beside the sonor wordmark. Under it: 'Your music, from your own server.' and sonor.fi.";
 
 export default function Head() {
   const { urlPathname, is404, errorWhileRendering, config } = usePageContext();
@@ -34,6 +35,7 @@ export default function Head() {
       <meta name="theme-color" content={THEME_COLOR.light} media="(prefers-color-scheme: light)" />
 
       <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      <link rel="icon" href="/favicon.ico" sizes="any" />
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

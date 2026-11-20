@@ -11,6 +11,7 @@
   --on-fill: #2a1a10;
   --second: #7fb7a8; /* teal: focus rings and decoration */
   --line: #4a3524;
+  --glow: color-mix(in srgb, var(--link) 14%, transparent);
 }
 
 @media (prefers-color-scheme: light) {
@@ -25,6 +26,7 @@
     --on-fill: #fbf5eb;
     --second: #3f7d6e;
     --line: #e2d2b8;
+    --glow: transparent; /* a glow here would lower the orange link text below AA */
   }
 }
 
@@ -43,7 +45,7 @@ body {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(60rem 36rem at 50% -8%, color-mix(in srgb, var(--link) 14%, transparent), transparent 70%),
+    radial-gradient(60rem 36rem at 50% -8%, var(--glow), transparent 70%),
     var(--ink);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -200,7 +202,7 @@ main {
 }
 
 .btn-secondary:hover {
-  background: color-mix(in srgb, var(--link) 12%, transparent);
+  background: var(--surface);
 }
 
 .detail,
@@ -248,8 +250,8 @@ main {
 /* Screenshots: a desktop frame (16:10) beside a phone frame (9:19.5). Placeholders keep the same shape. */
 .see-grid {
   display: grid;
-  gap: 2.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 
 .shot {
