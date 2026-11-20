@@ -27,6 +27,23 @@ pnpm -r build
 
 The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnpm --filter sonor-site build` before deploying by hand.
 
+## Website: brand and screenshots
+
+- Colours: the tokens at the top of `site/src/styles.css` (the Hi-Fi palette: walnut, cream, burnt orange, teal), and the theme colours in `site/src/brand.ts`. Keep the two in step. Text pairs are checked against WCAG AA in both schemes; the light-scheme link colour is a deeper orange than the button fill for that reason.
+- Logo: one component, `site/src/components/Logo.tsx`, which picks `site/public/brand/lockup-light.svg` or `lockup-dark.svg` by scheme. The current files are provisional.
+- Screenshots: `site/src/screenshots.ts` is the one data file. To add a shot, put its four files in `site/public/screenshots/` (below), then set `ready: true` and write its `alt` text. Until then a placeholder frame shows.
+  - `<id>-desktop-light.png` and `<id>-desktop-dark.png`: 16:10, 1600 × 1000 px.
+  - `<id>-phone-light.png` and `<id>-phone-dark.png`: 9:19.5, 900 × 1950 px.
+  - The ids are `library`, `now-playing` and `car`. Keep each file under about 400 KB; if they are WebP, change the extension in `screenshots.ts`.
+
+### TODO: the brand kit replaces these files
+
+- `site/public/brand/lockup-light.svg` and `lockup-dark.svg` (the logo, per scheme)
+- `site/public/brand/tile-light.svg` and `tile-dark.svg` (the tile icon; not used on the page yet)
+- `site/public/favicon-16.png`, `site/public/favicon-32.png`, `site/public/apple-touch-icon.png`
+- `site/public/sonor-social-1280x640.png` (the Open Graph and Twitter image)
+- `site/src/brand.ts` and the colour tokens in `site/src/styles.css`, if the kit changes the palette
+
 ## Licence
 
 Not chosen yet.

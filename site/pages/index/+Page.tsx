@@ -1,5 +1,6 @@
 import { useData } from "vike-react/useData";
 import { DownloadList, PrimaryDownload, usePlatform } from "../../src/components/Download";
+import { Screenshots } from "../../src/components/Screenshots";
 import type { Data } from "./+data";
 
 const FEATURES = [
@@ -57,6 +58,11 @@ export default function Page() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="section" aria-labelledby="see-title">
+        <h2 id="see-title">See it</h2>
+        <Screenshots />
       </section>
 
       <section className="section" id="downloads" aria-labelledby="downloads-title">
