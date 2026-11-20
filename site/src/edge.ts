@@ -4,7 +4,8 @@
 const APEX = "sonor.fi";
 const WWW = `www.${APEX}`;
 
-// The page has no script, so 'self' for scripts (from default-src) is the strictest that works. Its one <style> block needs 'unsafe-inline'.
+// Scripts come from this origin only. Styles are the built CSS file, but the Vite dev server injects its CSS as
+// style elements, so 'unsafe-inline' stays for styles until the dev server is checked without it.
 const CSP = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'";
 
 const SECURITY_HEADERS = {

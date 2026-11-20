@@ -1,11 +1,13 @@
 import { usePageContext } from "vike-react/usePageContext";
+import { THEME_COLOR } from "../src/brand";
 
 const SITE = "https://sonor.fi";
 const IMAGE = `${SITE}/sonor-social-1280x640.png`;
 const IMAGE_ALT = "The Sonor logo: a treble clef on a staff, in neon pink and lavender, on a dark background.";
 
 export default function Head() {
-  const { urlPathname, is404, config } = usePageContext();
+  const { urlPathname, is404, errorWhileRendering, config } = usePageContext();
+  const indexable = !is404 && !errorWhileRendering;
   const title = (config.title as string | undefined) ?? "Sonor";
   const description = (config.description as string | undefined) ?? "";
   const home = urlPathname === "/";
@@ -25,14 +27,14 @@ export default function Head() {
     <>
       {/* Vike adds the charset, viewport, title, description, og:title and og:description from the config. */}
       <meta name="color-scheme" content="dark light" />
-      <meta name="theme-color" content="#15141b" media="(prefers-color-scheme: dark)" />
-      <meta name="theme-color" content="#faf8ff" media="(prefers-color-scheme: light)" />
+      <meta name="theme-color" content={THEME_COLOR.dark} media="(prefers-color-scheme: dark)" />
+      <meta name="theme-color" content={THEME_COLOR.light} media="(prefers-color-scheme: light)" />
 
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
       <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-      {is404 ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={`${SITE}${urlPathname}`} />}
+      {indexable ? <link rel="canonical" href={`${SITE}${urlPathname}`} /> : <meta name="robots" content="noindex" />}
 
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Sonor" />

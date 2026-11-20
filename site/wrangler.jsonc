@@ -3,7 +3,7 @@
   "name": "sonor-fi",
   "compatibility_date": "2026-11-08",
   "main": "vike:server",
-  // Nothing about visitors is logged; the Worker only redirects and adds headers.
+  // Nothing about visitors is logged: the Worker renders pages, redirects and adds headers, and keeps no records.
   "observability": { "enabled": false },
   "workers_dev": true,
   "routes": [

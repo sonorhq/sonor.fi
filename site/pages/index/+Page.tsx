@@ -29,14 +29,6 @@ const FEATURES = [
   },
 ];
 
-const PLATFORMS = [
-  { name: "macOS", text: "Disk image and zip." },
-  { name: "Windows", text: "Installer." },
-  { name: "Linux", text: "AppImage and Arch package." },
-  { name: "Android", text: "APK, with Android Auto." },
-  { name: "iOS", text: "iPhone, with CarPlay. TestFlight beta by invitation; App Store coming." },
-];
-
 export default function Page() {
   const { platform: serverPlatform, downloads } = useData<Data>();
   const platform = usePlatform(serverPlatform);
@@ -67,19 +59,11 @@ export default function Page() {
         </ul>
       </section>
 
-      <section className="section" aria-labelledby="platforms-title">
-        <h2 id="platforms-title">Platforms</h2>
-        <ul className="platforms">
-          {PLATFORMS.map((p) => (
-            <li key={p.name}>
-              <strong>{p.name}</strong> <span>{p.text}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
       <section className="section" id="downloads" aria-labelledby="downloads-title">
         <h2 id="downloads-title">Download</h2>
+        <p className="lead">
+          Sonor runs on Windows, macOS, Linux, Android and iPhone. The iPhone app is a TestFlight beta for now.
+        </p>
         <DownloadList downloads={downloads} />
       </section>
     </>

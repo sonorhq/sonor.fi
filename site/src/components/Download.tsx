@@ -26,8 +26,7 @@ export function usePlatform(initial: Platform): Platform {
   return platform;
 }
 
-const archLabel = (arch: string) =>
-  ({ x64: "x64", arm64: "ARM64", universal: "Universal" })[arch as "x64"] ?? "";
+const archLabel = (arch: string) => ({ x64: "x64", arm64: "ARM64", universal: "Universal" })[arch as "x64"] ?? "";
 
 const size = (bytes: number | undefined) => (bytes ? `${(bytes / 1024 / 1024).toFixed(0)} MB` : "");
 
@@ -40,20 +39,30 @@ export function PrimaryDownload({ platform, downloads }: { platform: Platform; d
     return <p className="note">iOS: TestFlight beta by invitation, App Store coming.</p>;
   }
 
-  const file = downloads ? pickFile(downloads.files, platform) : undefined;
-  const label = `Download for ${OS_NAMES[platform.os]}`;
-  if (!file || !downloads) {
+  const name = OS_NAMES[platform.os];
+  if (!downloads) {
     return (
       <div className="primary">
-        <a className="btn btn-primary" href={RELEASES_PAGE}>{label}</a>
+        <a className="btn btn-primary" href={RELEASES_PAGE}>{`Download for ${name}`}</a>
         <p className="detail">Downloads are unavailable right now. Get the latest build on GitHub.</p>
       </div>
     );
   }
 
+  const file = pickFile(downloads.files, platform);
+  if (!file) {
+    const arch = archLabel(platform.arch) ? ` ${archLabel(platform.arch)}` : "";
+    return (
+      <p className="detail">
+        {`No ${name}${arch} build in ${downloads.version}; `}
+        <a href="#downloads">see all downloads</a>.
+      </p>
+    );
+  }
+
   return (
     <div className="primary">
-      <a className="btn btn-primary" href={file.href} download>{label}</a>
+      <a className="btn btn-primary" href={file.href} download>{`Download for ${name}`}</a>
       <p className="detail">
         {join([downloads.version, FORMAT_LABELS[file.format], archLabel(file.arch), size(file.size)])}
       </p>
@@ -91,17 +100,22 @@ export function DownloadList({ downloads }: { downloads: Downloads | null }) {
         <h3 id="files-ios">iOS</h3>
         <p>TestFlight beta by invitation, App Store coming.</p>
       </section>
-      <p className="detail">
-        {downloads.checksums ? <a href={downloads.checksums}>SHA256SUMS</a> : null}
-        {downloads.checksums && downloads.sources.length > 0 ? " · " : null}
-        {downloads.sources.length > 0 ? "libmpv source (LGPL): " : null}
-        {downloads.sources.map((source, i) => (
-          <span key={source.name}>
-            {i > 0 ? ", " : null}
-            <a href={source.browser_download_url}>{source.name}</a>
-          </span>
-        ))}
-      </p>
+      <section className="platform-files" aria-labelledby="files-checksums">
+        <h3 id="files-checksums">Checksums and sources</h3>
+        <ul>
+          {downloads.checksums ? (
+            <li>
+              <a href={downloads.checksums}>SHA256SUMS</a>
+            </li>
+          ) : null}
+          {downloads.sources.map((source) => (
+            <li key={source.name}>
+              <a href={source.browser_download_url}>{source.name}</a>
+              <span className="detail"> libmpv source, LGPL</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

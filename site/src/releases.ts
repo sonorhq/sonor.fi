@@ -7,7 +7,10 @@ const RELEASES_API = "https://api.github.com/repos/sonorhq/sonor/releases?per_pa
 
 // The Cache API key. Only the Worker reads it; the URL is never requested.
 const CACHE_KEY = "https://sonor.fi/__cache/latest-release";
-const CACHE_SECONDS = 600;
+// Served without asking GitHub again. Unauthenticated API calls share 60 an hour per IP, so the Worker asks rarely.
+const FRESH_MS = 10 * 60 * 1000;
+// The last good copy stays for the fallback when GitHub fails, for up to a day.
+const KEEP_MS = 24 * 60 * 60 * 1000;
 
 interface GitHubRelease {
   tag_name: string;
@@ -15,6 +18,11 @@ interface GitHubRelease {
   draft: boolean;
   published_at: string | null;
   assets: { name: string; browser_download_url: string; size?: number }[];
+}
+
+interface Stored {
+  fetchedAt: number;
+  release: Release;
 }
 
 /** The newest release that isn't a draft. Prereleases count, so betas are picked. */
@@ -30,36 +38,56 @@ const toRelease = (r: GitHubRelease): Release => ({
   assets: r.assets.map(({ name, browser_download_url, size }) => ({ name, browser_download_url, size })),
 });
 
+// A cache that fails only costs a GitHub call on the next visit, so its errors are never shown.
+async function readStored(cache: Cache | undefined, key: Request): Promise<Stored | undefined> {
+  try {
+    const hit = await cache?.match(key);
+    return hit ? ((await hit.json()) as Stored) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeStored(cache: Cache | undefined, key: Request, stored: Stored): Promise<void> {
+  try {
+    await cache?.put(
+      key,
+      new Response(JSON.stringify(stored), {
+        headers: { "Content-Type": "application/json", "Cache-Control": `max-age=${KEEP_MS / 1000}` },
+      }),
+    );
+  } catch {
+    // The page has its release already; the next visit fetches again.
+  }
+}
+
 /**
- * The latest release, or null when GitHub can't be reached. The caller then links to the
- * releases page. Failures aren't cached, so the next visit tries again.
+ * The latest release, or null when GitHub can't be reached and no good copy is left. A failed
+ * fetch never replaces the stored copy, and a failure is never stored: the copy stays for up to a day.
  */
 export async function latestRelease(
   fetcher: typeof fetch = fetch,
   cache: Cache | undefined = typeof caches === "undefined" ? undefined : caches.default,
+  now: () => number = Date.now,
 ): Promise<Release | null> {
   const key = new Request(CACHE_KEY);
-  const cached = await cache?.match(key);
-  if (cached) return (await cached.json()) as Release;
+  const stored = await readStored(cache, key);
+  if (stored && now() - stored.fetchedAt < FRESH_MS) return stored.release;
 
-  let release: Release;
+  let fresh: Release | null = null;
   try {
     const res = await fetcher(RELEASES_API, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "sonor.fi-site" },
     });
-    if (!res.ok) return null;
-    const latest = pickLatest((await res.json()) as GitHubRelease[]);
-    if (!latest) return null;
-    release = toRelease(latest);
+    if (res.ok) {
+      const latest = pickLatest((await res.json()) as GitHubRelease[]);
+      if (latest) fresh = toRelease(latest);
+    }
   } catch {
-    return null;
+    // Unreachable or not JSON: the stored copy below is the fallback.
   }
 
-  await cache?.put(
-    key,
-    new Response(JSON.stringify(release), {
-      headers: { "Content-Type": "application/json", "Cache-Control": `max-age=${CACHE_SECONDS}` },
-    }),
-  );
-  return release;
+  if (!fresh) return stored && now() - stored.fetchedAt < KEEP_MS ? stored.release : null;
+  await writeStored(cache, key, { fetchedAt: now(), release: fresh });
+  return fresh;
 }

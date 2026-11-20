@@ -117,12 +117,8 @@ main {
   padding-bottom: 1.25rem;
 }
 
-/* The lockup is drawn for a dark background, so it keeps one in both schemes. */
 .brand {
   display: inline-flex;
-  padding: 0.35rem 0.75rem;
-  border-radius: 0.5rem;
-  background: #15141b;
 }
 
 .logo {
@@ -167,7 +163,7 @@ main {
 .actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem 1.5rem;
   margin-top: 0.5rem;
 }
@@ -216,6 +212,11 @@ main {
 
 .narrow {
   max-width: 40rem;
+  padding-top: 0.5rem;
+}
+
+.narrow h1 {
+  margin-bottom: 1rem;
 }
 
 .features {
@@ -236,18 +237,6 @@ main {
 
 .card p {
   margin-top: 0.5rem;
-  color: var(--muted);
-}
-
-.platforms {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.platforms span {
   color: var(--muted);
 }
 

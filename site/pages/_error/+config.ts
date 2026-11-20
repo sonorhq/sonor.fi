@@ -1,6 +1,7 @@
 import type { Config } from "vike/types";
 
+// One page for a missing address and for a render failure; the page body says which.
 export default {
-  title: "Page not found · Sonor",
-  description: "There is nothing at this address on sonor.fi.",
+  title: "Sonor",
+  description: "Sonor's website. This page is not available.",
 } satisfies Config;

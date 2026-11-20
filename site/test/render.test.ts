@@ -105,6 +105,12 @@ describe("the rendered pages", () => {
     expect(html).toContain('"@type":"SoftwareApplication"');
   });
 
+  it("says so when the release has no build for the visitor's architecture", async () => {
+    const { html } = await render("/", { "user-agent": "Mozilla/5.0 (X11; Linux aarch64; rv:131.0) Gecko/20100101 Firefox/131.0" });
+    expect(html).toContain("No Linux ARM64 build in v0.1.0-beta.23; ");
+    expect(html).not.toContain("Download for Linux</a>");
+  });
+
   it("says the downloads are unavailable and links to GitHub when the release can't be read", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 503 })));
     const { html } = await render("/", { "user-agent": UA.windows });

@@ -13,6 +13,10 @@ const beta22 = release("v0.1.0-beta.22", "2026-11-10T10:00:00Z");
 const beta23 = release("v0.1.0-beta.23", "2026-11-18T10:00:00Z");
 const draft = release("v0.1.0-beta.24", "2026-11-19T10:00:00Z", true);
 
+const MIN = 60 * 1000;
+const HOUR = 60 * MIN;
+const KEY = "https://sonor.fi/__cache/latest-release";
+
 /** An in-memory Cache API, keyed by URL. */
 function memoryCache() {
   const store = new Map<string, Response>();
@@ -27,6 +31,12 @@ function memoryCache() {
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+
+const ok = (releases: unknown[]) => vi.fn(async () => json(releases));
+const down = () =>
+  vi.fn(async () => {
+    throw new TypeError("network down");
+  });
 
 describe("pickLatest", () => {
   it("skips drafts and takes the newest prerelease", () => {
@@ -46,7 +56,7 @@ describe("pickLatest", () => {
 
 describe("latestRelease", () => {
   it("reads the releases from the GitHub API with a plain User-Agent and no token", async () => {
-    const fetcher = vi.fn(async () => json([draft, beta23, beta22]));
+    const fetcher = ok([draft, beta23, beta22]);
     const found = await latestRelease(fetcher as unknown as typeof fetch, memoryCache().cache);
 
     expect(found?.tag_name).toBe("v0.1.0-beta.23");
@@ -56,31 +66,89 @@ describe("latestRelease", () => {
     expect(init.headers).toEqual({ Accept: "application/vnd.github+json", "User-Agent": "sonor.fi-site" });
   });
 
-  it("returns null when GitHub answers with an error", async () => {
+  it("returns null when GitHub answers with an error and nothing is stored", async () => {
     const { store, cache } = memoryCache();
     expect(await latestRelease((async () => json({ message: "rate limited" }, 403)) as typeof fetch, cache)).toBeNull();
     expect(store.size).toBe(0);
   });
 
-  it("returns null when GitHub can't be reached", async () => {
-    const failing = (async () => {
-      throw new TypeError("network down");
-    }) as unknown as typeof fetch;
-    expect(await latestRelease(failing, memoryCache().cache)).toBeNull();
+  it("returns null when GitHub can't be reached and nothing is stored", async () => {
+    expect(await latestRelease(down() as unknown as typeof fetch, memoryCache().cache)).toBeNull();
   });
 
   it("returns null when there is no release to pick", async () => {
-    expect(await latestRelease((async () => json([draft])) as typeof fetch, memoryCache().cache)).toBeNull();
+    expect(await latestRelease(ok([draft]) as unknown as typeof fetch, memoryCache().cache)).toBeNull();
   });
 
-  it("caches the release for ten minutes and serves it from the cache next time", async () => {
+  it("serves the stored release for ten minutes without asking GitHub", async () => {
     const { store, cache } = memoryCache();
-    const fetcher = vi.fn(async () => json([beta23]));
-    await latestRelease(fetcher as unknown as typeof fetch, cache);
-    expect(store.get("https://sonor.fi/__cache/latest-release")?.headers.get("Cache-Control")).toBe("max-age=600");
+    const fetcher = ok([beta23]);
+    const t0 = 1_000_000;
+    await latestRelease(fetcher as unknown as typeof fetch, cache, () => t0);
+    expect(store.get(KEY)?.headers.get("Cache-Control")).toBe("max-age=86400");
 
-    const again = await latestRelease(fetcher as unknown as typeof fetch, cache);
+    const again = await latestRelease(fetcher as unknown as typeof fetch, cache, () => t0 + 9 * MIN);
     expect(again?.tag_name).toBe("v0.1.0-beta.23");
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks GitHub again once the copy is older than ten minutes", async () => {
+    const { cache } = memoryCache();
+    const fetcher = ok([beta23]);
+    await latestRelease(fetcher as unknown as typeof fetch, cache, () => 0);
+    await latestRelease(fetcher as unknown as typeof fetch, cache, () => 11 * MIN);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("serves the last good copy when GitHub fails after the copy went stale", async () => {
+    const { cache } = memoryCache();
+    await latestRelease(ok([beta23]) as unknown as typeof fetch, cache, () => 0);
+    const failing = down();
+    const found = await latestRelease(failing as unknown as typeof fetch, cache, () => 2 * HOUR);
+    expect(found?.tag_name).toBe("v0.1.0-beta.23");
+    expect(failing).toHaveBeenCalledTimes(1);
+  });
+
+  it("serves the copy when GitHub answers with an error, and keeps it for the next visit", async () => {
+    const { cache } = memoryCache();
+    await latestRelease(ok([beta23]) as unknown as typeof fetch, cache, () => 0);
+    const limited = (async () => json({ message: "rate limited" }, 403)) as unknown as typeof fetch;
+    expect((await latestRelease(limited, cache, () => HOUR))?.tag_name).toBe("v0.1.0-beta.23");
+    expect((await latestRelease(limited, cache, () => 2 * HOUR))?.tag_name).toBe("v0.1.0-beta.23");
+  });
+
+  it("replaces the stale copy when GitHub answers with a newer release", async () => {
+    const { cache } = memoryCache();
+    await latestRelease(ok([beta22]) as unknown as typeof fetch, cache, () => 0);
+    const found = await latestRelease(ok([beta23]) as unknown as typeof fetch, cache, () => 2 * HOUR);
+    expect(found?.tag_name).toBe("v0.1.0-beta.23");
+  });
+
+  it("stops serving a copy older than a day", async () => {
+    const { cache } = memoryCache();
+    await latestRelease(ok([beta23]) as unknown as typeof fetch, cache, () => 0);
+    expect(await latestRelease(down() as unknown as typeof fetch, cache, () => 25 * HOUR)).toBeNull();
+  });
+
+  it("still answers when the cache can't be written", async () => {
+    const cache = {
+      match: async () => undefined,
+      put: async () => {
+        throw new Error("cache full");
+      },
+    } as unknown as Cache;
+    expect((await latestRelease(ok([beta23]) as unknown as typeof fetch, cache))?.tag_name).toBe("v0.1.0-beta.23");
+  });
+
+  it("fetches when the cache can't be read", async () => {
+    const cache = {
+      match: async () => {
+        throw new Error("cache down");
+      },
+      put: async () => undefined,
+    } as unknown as Cache;
+    const fetcher = ok([beta23]);
+    expect((await latestRelease(fetcher as unknown as typeof fetch, cache))?.tag_name).toBe("v0.1.0-beta.23");
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 });
