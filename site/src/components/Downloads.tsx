@@ -36,8 +36,8 @@ export function usePlatform(initial: Platform): Platform {
   return platform;
 }
 
-/** Unknown systems get macOS, as the first tab: the page always has something to offer. */
-const tabFor = (platform: Platform): OS => (platform.os === "unknown" ? "macos" : platform.os);
+/** The tab shown when the system is unknown: the first one, not marked as the visitor's. */
+const FIRST_TAB: OS = "macos";
 
 const ARCH_NAMES: Partial<Record<Platform["arch"], string>> = { x64: "x64", arm64: "ARM64" };
 
@@ -61,7 +61,10 @@ interface Primary {
 
 /** What the primary button offers the visitor's platform; unknown systems get macOS. */
 function primaryFor(platform: Platform, downloads: Downloads | null): Primary {
-  const os = tabFor(platform);
+  if (platform.os === "unknown") {
+    return { label: "Download", href: "#download", file: false, meta: "" };
+  }
+  const os = platform.os;
   const name = OS_NAMES[os];
   if (os === "ios") {
     return {
@@ -108,16 +111,20 @@ export function PrimaryButton({ platform, downloads }: { platform: Platform; dow
   );
 }
 
-/** The line under the hero row: the file's format and size, or the reason there is no file. */
+/** The line under the hero row: the file's format and size, or the reason there is no file. Empty when unknown. */
 export function PrimaryMeta({ platform, downloads }: { platform: Platform; downloads: Downloads | null }) {
-  return <p className="meta">{primaryFor(platform, downloads).meta}</p>;
+  const meta = primaryFor(platform, downloads).meta;
+  return meta ? <p className="meta">{meta}</p> : null;
 }
 
 /** The platform tabs, with one panel per platform. Every panel is in the HTML; the tabs only show one. */
 export function DownloadTabs({ platform, downloads }: { platform: Platform; downloads: Downloads | null }) {
-  const detected = tabFor(platform);
-  const [selected, setSelected] = useState<OS>(detected);
-  useEffect(() => setSelected(detected), [detected]);
+  // The visitor's platform, once known; an unknown system has none, so no tab is marked.
+  const detected = platform.os === "unknown" ? undefined : platform.os;
+  const [selected, setSelected] = useState<OS>(detected ?? FIRST_TAB);
+  useEffect(() => {
+    if (detected) setSelected(detected);
+  }, [detected]);
 
   const select = (os: OS, focus: boolean) => {
     setSelected(os);

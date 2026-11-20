@@ -91,9 +91,12 @@ describe("the rendered pages", () => {
     expect(html).not.toContain("Download for iPhone");
   });
 
-  it("points an unknown system at macOS, and keeps the full list", async () => {
+  it("gives an unknown system a neutral download button that leads to the tabs, and keeps the full list", async () => {
     const { html } = await render("/");
-    expect(html).toContain("Download for macOS</a>");
+    expect(html).toContain('class="btn btn-primary" href="#download"');
+    expect(html).toContain("Download</a>");
+    expect(html).not.toContain("Download for macOS");
+    expect(html).not.toContain('class="here"');
     expect(html).toContain("sonor-0.1.0-beta.23-d265ff1-macos.dmg");
   });
 
