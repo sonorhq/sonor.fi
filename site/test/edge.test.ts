@@ -50,6 +50,29 @@ describe("redirects", () => {
   });
 });
 
+describe("local development", () => {
+  it("serves localhost over http, without the https redirect", async () => {
+    const { get, render } = setup();
+    const res = await get("http://localhost:4321/");
+    expect(res.status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(1);
+  });
+
+  it("serves 127.0.0.1 over http too", async () => {
+    const { get, render } = setup();
+    const res = await get("http://127.0.0.1:8787/privacy");
+    expect(res.status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(1);
+  });
+
+  it("still redirects sonor.fi over http", async () => {
+    const { get, render } = setup();
+    const res = await get("http://sonor.fi/");
+    expect(res.status).toBe(301);
+    expect(render).not.toHaveBeenCalled();
+  });
+});
+
 describe("assets and pages", () => {
   it("serves a file from the assets with the security headers, without rendering", async () => {
     const { get, render } = setup({ assetStatus: 200 });

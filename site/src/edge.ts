@@ -3,6 +3,7 @@
 
 const APEX = "sonor.fi";
 const WWW = `www.${APEX}`;
+const LOCAL = ["localhost", "127.0.0.1"];
 
 // Scripts come from this origin only. Styles are the built CSS file, but the Vite dev server injects its CSS as
 // style elements, so 'unsafe-inline' stays for styles until the dev server is checked without it.
@@ -43,13 +44,16 @@ export function createEdgeHandler({ assets, render }: EdgeDeps) {
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
 
-    if (url.protocol === "http:") {
+    // Local development runs over plain http, so the redirects are for the public site only.
+    const local = LOCAL.includes(url.hostname);
+
+    if (!local && url.protocol === "http:") {
       url.protocol = "https:";
       url.port = "";
       return redirect(url);
     }
 
-    if (url.hostname === WWW) {
+    if (!local && url.hostname === WWW) {
       url.hostname = APEX;
       return redirect(url);
     }

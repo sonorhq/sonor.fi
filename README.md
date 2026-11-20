@@ -23,7 +23,7 @@ pnpm -r test
 pnpm -r build
 ```
 
-`pnpm --filter sonor-api dev` runs the API Worker locally with `wrangler dev`. For the website, `pnpm --filter sonor-site dev` runs Vike's dev server, and `pnpm --filter sonor-site preview` builds and serves the Worker the way it deploys. The Worker redirects plain http to https, so a browser on `http://localhost` is sent to `https://localhost`; test the pages with an `https://sonor.fi` request target, as `curl --request-target` allows.
+`pnpm --filter sonor-api dev` runs the API Worker locally with `wrangler dev`. For the website, `pnpm --filter sonor-site dev` runs Vike's dev server, and `pnpm --filter sonor-site preview` builds and serves the Worker the way it deploys. Both serve `http://localhost` directly; the http-to-https redirect applies to the public host only.
 
 The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnpm --filter sonor-site build` before deploying by hand.
 
