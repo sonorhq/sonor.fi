@@ -1,5 +1,7 @@
 // The app screenshots on the home page, from the owner's app (dark only, as the app is).
 // A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
+// TODO: these shots still show the old logo and palette in the sidebar. Retake them from a new build with a
+// demo user (1600 × 1004, dark) and replace the files in public/screenshots; don't edit the old ones.
 // An entry shows only when `ready` is true, so a shot can be added before its files are.
 
 export interface Screenshot {
