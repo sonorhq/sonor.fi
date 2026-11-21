@@ -1,10 +1,10 @@
-import { COMING, CORE_FEATURES, OCTO_FEATURES, type Feature } from "../features";
+import { COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../features";
 
 // The optional picture of a feature block: it renders only when the entry is ready, and the sizes come from
 // the file (16:10), so the browser reserves the space before it loads.
 function FeatureImage({ feature }: { feature: Feature }) {
-  const image = feature.image;
-  if (!image?.ready) return null;
+  const image = readyImage(feature);
+  if (!image) return null;
   return <img className="feature-img" src={image.src} width={1600} height={1004} loading="lazy" decoding="async" alt={image.alt} />;
 }
 

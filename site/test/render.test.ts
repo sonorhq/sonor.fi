@@ -133,7 +133,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("<h2>With an Octo server</h2>");
     expect(html).toContain("Everything here needs an Octo server");
     expect(html).toContain("<h3>Add music to your library</h3>");
-    expect(html).toContain("such as Soulseek");
+    expect(html).toContain("such as Soulseek or Lidarr");
     expect(html).toContain("<h2>Coming</h2>");
     expect(html).toContain("Jellyfin, Emby and Plex servers");
     expect(html).not.toContain('class="feature-img"');

@@ -19,6 +19,11 @@ export interface Feature {
   image?: FeatureImage;
 }
 
+/** The picture of a feature, when it has one that is ready to show. */
+export function readyImage(feature: Feature): FeatureImage | undefined {
+  return feature.image?.ready ? feature.image : undefined;
+}
+
 /** What Sonor does on any server it can connect to. */
 export const CORE_FEATURES: Feature[] = [
   {
@@ -60,7 +65,7 @@ export const CORE_FEATURES: Feature[] = [
   {
     id: "media-keys",
     title: "Media keys and Now Playing",
-    text: "Your keyboard's media keys work, and the track shows in the system's Now Playing controls.",
+    text: "Your keyboard's media keys control playback on every desktop. The track also shows in Now Playing on macOS and Linux.",
     where: "macOS · Windows · Linux",
   },
   {
@@ -72,8 +77,8 @@ export const CORE_FEATURES: Feature[] = [
   {
     id: "accent",
     title: "Accent colour and app icon",
-    text: "Pick an accent colour in Settings and the app icon follows it on the Dock, the taskbar and the Android home screen.",
-    where: "macOS · Windows · Android",
+    text: "Pick an accent colour in Settings and the app icon follows it: on the Dock (macOS), the taskbar (Windows), the window (Linux, where it has its own icon), and the home screen (Android and iPhone). Android and iPhone use the nearest preset colour.",
+    where: "macOS · Windows · Linux · Android · iPhone",
   },
   {
     id: "scrobbling",
@@ -94,7 +99,7 @@ export const OCTO_FEATURES: Feature[] = [
   {
     id: "discovery",
     title: "Mixes, stations and charts",
-    text: "Made-for-you mixes, genre and artist mixes, stations and charts for each country appear on Home and Discover, beside your library.",
+    text: "Made-for-you mixes, genre and artist mixes and stations appear on Home and Discover, beside your library. Charts, by country, have their own page, reached from Discover.",
   },
   {
     id: "search",
@@ -104,7 +109,7 @@ export const OCTO_FEATURES: Feature[] = [
   {
     id: "acquire",
     title: "Add music to your library",
-    text: "Star a song or album you don't have, and Octo fetches it through the tools it is connected to, such as Soulseek. It is added to your server, and the acquisitions drawer shows each step.",
+    text: "Tap Add to library on a song or album you don't have, and Octo fetches it through the tools it is connected to, such as Soulseek or Lidarr. It is added to your server, and the acquisitions drawer shows each step.",
   },
   {
     id: "copies",

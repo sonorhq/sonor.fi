@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMING, CORE_FEATURES, OCTO_FEATURES, type Feature } from "../src/features";
+import { COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../src/features";
 
 const ALL: Feature[] = [...CORE_FEATURES, ...OCTO_FEATURES];
 
@@ -20,11 +20,19 @@ describe("the feature copy", () => {
     }
   });
 
-  it("keeps every picture's alt text, and only ready pictures can show", () => {
+  it("keeps every picture's alt text and source", () => {
     for (const feature of ALL) {
       if (!feature.image) continue;
       expect(feature.image.alt.trim()).not.toBe("");
       expect(feature.image.src).toMatch(/^\/[^ ]+\.webp$/);
     }
+  });
+
+  it("shows a picture only when it is ready", () => {
+    const image = { src: "/screenshots/x.webp", alt: "A picture", ready: true };
+    const block = { id: "x", title: "X", text: "X" };
+    expect(readyImage({ ...block, image })).toBe(image);
+    expect(readyImage({ ...block, image: { ...image, ready: false } })).toBeUndefined();
+    expect(readyImage(block)).toBeUndefined();
   });
 });
