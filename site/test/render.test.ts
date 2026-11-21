@@ -126,6 +126,19 @@ describe("the rendered pages", () => {
     expect(html).toContain("See all releases on GitHub.");
   });
 
+  it("presents the core features, the Octo features and the coming list, with no picture until one is ready", async () => {
+    const { html } = await render("/");
+    expect(html).toContain("<h2>Made for listening</h2>");
+    expect(html).toContain("<h3>Offline downloads</h3>");
+    expect(html).toContain("<h2>With an Octo server</h2>");
+    expect(html).toContain("Everything here needs an Octo server");
+    expect(html).toContain("<h3>Add music to your library</h3>");
+    expect(html).toContain("such as Soulseek");
+    expect(html).toContain("<h2>Coming</h2>");
+    expect(html).toContain("Jellyfin, Emby and Plex servers");
+    expect(html).not.toContain('class="feature-img"');
+  });
+
   it("renders the privacy page with its heading and its own canonical", async () => {
     const { status, html } = await render("/privacy");
     expect(status).toBe(200);

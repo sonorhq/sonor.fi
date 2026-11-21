@@ -57,6 +57,20 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 .features p { margin: 0; color: var(--muted); text-wrap: pretty; }
 .features .where { display: block; margin-top: .55rem; font-size: .75rem; color: var(--teal); letter-spacing: .02em; }
 
+/* feature pictures: optional, above the text, shown only once the file is ready */
+.feature-img { display: block; width: 100%; height: auto; border-radius: 12px; margin-bottom: 1.1rem; box-shadow: 0 0 0 1px var(--line-2); }
+
+/* octo: cards, two across on a wide screen */
+.octo-grid { list-style: none; margin: 3rem auto 0; padding: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); text-align: left; }
+.octo-card { padding: 1.5rem; border-radius: 16px; background: linear-gradient(180deg, var(--raise), var(--bg-2)); box-shadow: 0 0 0 1px var(--line), 0 30px 60px -30px rgb(0 0 0 / .8); }
+.octo-card h3 { margin: 0 0 .4rem; font-size: 1.125rem; font-weight: 620; letter-spacing: -.01em; }
+.octo-card p { margin: 0; color: var(--muted); text-wrap: pretty; }
+
+/* coming: a quiet list of what is not in the app yet */
+.coming { list-style: none; margin: 2.5rem auto 0; padding: 0; max-width: 34rem; text-align: left; }
+.coming li { padding: .75rem 0; color: var(--muted); border-top: 1px solid var(--line); }
+.coming li:last-child { border-bottom: 1px solid var(--line); }
+
 /* downloads */
 .tabs { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line); margin-top: 2.5rem; }
 .tabs button { font: inherit; font-size: .9375rem; font-weight: 600; color: var(--muted); background: none; border: 0; padding: .6rem 1rem; border-radius: 10px; cursor: pointer; min-height: 2.75rem; transition: background-color .18s, color .18s; }
