@@ -181,7 +181,7 @@ export const OCTO_FEATURES: Feature[] = [
 
 /** Things on the way. Not in the app yet. */
 export const COMING: string[] = [
-  "Jellyfin, Emby and Plex servers",
+  "Plex servers",
   "Casting to AirPlay, Chromecast and DLNA",
   "Companion services, such as ListenBrainz",
 ];

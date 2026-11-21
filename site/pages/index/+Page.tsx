@@ -18,7 +18,7 @@ export default function Page() {
             <Lockup />
           </h1>
           <p className="tagline rise d1">
-            A music player for your own Subsonic or Navidrome server. <span>On your desktop, your phone and in the car.</span>
+            A music player for your own Subsonic, Navidrome, Jellyfin or Emby server. <span>On your desktop, your phone and in the car.</span>
           </p>
           <span className="pill rise d2">
             <i aria-hidden="true" />
@@ -53,7 +53,7 @@ export default function Page() {
         <div className="col">
           <h2>Made for listening</h2>
           <p className="lede">
-            The things a player has to get right, for libraries you host yourself on Subsonic, OpenSubsonic or Navidrome.
+            The things a player has to get right, for libraries you host yourself on Subsonic, OpenSubsonic (Navidrome and the like), Jellyfin or Emby.
           </p>
           <CoreFeatures />
         </div>

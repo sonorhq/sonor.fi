@@ -103,8 +103,8 @@ describe("the rendered pages", () => {
   it("puts the page metadata in the head: title, canonical, Open Graph, Twitter and JSON-LD", async () => {
     const { html } = await render("/");
     expect(html).toContain('<html lang="en"');
-    expect(html).toContain("<title>Sonor: a music player for Subsonic and Navidrome</title>");
-    expect(html).toContain('<meta name="description" content="Sonor plays your Subsonic and Navidrome library');
+    expect(html).toContain("<title>Sonor: a music player for Subsonic, Jellyfin and Emby</title>");
+    expect(html).toContain('<meta name="description" content="Sonor plays your Subsonic, Navidrome, Jellyfin and Emby library');
     expect(html).toContain('<link rel="canonical" href="https://sonor.fi/"/>');
     expect(html).toContain('<meta property="og:image" content="https://sonor.fi/sonor-social-1200x630.png"/>');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image"/>');
@@ -135,7 +135,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("<h3>Add music to your library</h3>");
     expect(html).toContain("such as Soulseek or Lidarr");
     expect(html).toContain("<h2>Coming</h2>");
-    expect(html).toContain("Jellyfin, Emby and Plex servers");
+    expect(html).toContain("Plex servers");
     expect(html).toContain("Sonor never downloads music from the internet itself");
     expect(html).toContain("/screenshots/features/copies.webp");
     expect(html).toContain("/screenshots/features/discovery.webp");

@@ -1,6 +1,6 @@
 # sonor.fi
 
-The public side of [Sonor](https://github.com/sonorhq/sonor), a music player for Subsonic and Navidrome servers.
+The public side of [Sonor](https://github.com/sonorhq/sonor), a music player for Subsonic, Navidrome, Jellyfin and Emby servers.
 
 - `site/`: the website for sonor.fi, a Vike (React) app server-rendered on the `sonor-fi` Worker. The pages are in `site/pages/`, the static files in `site/public/`. `site/src/edge.ts` redirects http to https and www to the apex, and adds the security headers, before Vike renders. The latest release (betas included) is read from the GitHub API and cached for ten minutes; the download choice follows the visitor's OS.
 - `workers/api/`: the API Worker for api.sonor.fi (`sonor-api`). Today it answers the app's update check.
