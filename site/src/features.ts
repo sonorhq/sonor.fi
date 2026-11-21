@@ -77,7 +77,7 @@ export const CORE_FEATURES: Feature[] = [
   {
     id: "accent",
     title: "Accent colour and app icon",
-    text: "Pick an accent colour in Settings and the app icon follows it: on the Dock (macOS), the taskbar (Windows), the window (Linux, where it has its own icon), and the home screen (Android and iPhone). Android and iPhone use the nearest preset colour.",
+    text: "Pick an accent colour in Settings and the app icon follows it: on the Dock (macOS), the taskbar (Windows), the window icon (Linux; the app menu keeps the original), and the home screen (Android and iPhone). Android and iPhone use the nearest preset colour.",
     where: "macOS · Windows · Linux · Android · iPhone",
   },
   {
