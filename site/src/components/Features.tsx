@@ -1,11 +1,34 @@
-import { COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../features";
+import { ACCENT_ICONS, COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../features";
+import { AppIcon } from "./Logo";
 
-// The optional picture of a feature block: it renders only when the entry is ready, and the sizes come from
-// the file (16:10), so the browser reserves the space before it loads.
+function AccentIcons() {
+  return (
+    <div className="feature-visual accent-icons" role="img" aria-label="The Sonor app icon in six accent colours: Sonor orange, rose, violet, blue, teal and green.">
+      {ACCENT_ICONS.map((icon) => (
+        <AppIcon key={icon.name} tile={icon.tile} bars={icon.accent} />
+      ))}
+    </div>
+  );
+}
+
+// The optional picture of a feature block: a screenshot when the entry is ready, or a drawn visual. Width and
+// height come from the entry, so the browser reserves the space (and the frame keeps its ratio) before it loads.
 function FeatureImage({ feature }: { feature: Feature }) {
+  if (feature.visual === "accent-icons") return <AccentIcons />;
   const image = readyImage(feature);
   if (!image) return null;
-  return <img className="feature-img" src={image.src} width={1600} height={1004} loading="lazy" decoding="async" alt={image.alt} />;
+  return (
+    <img
+      className="feature-img"
+      src={image.src}
+      width={image.width}
+      height={image.height}
+      style={{ aspectRatio: `${image.width} / ${image.height}` }}
+      loading="lazy"
+      decoding="async"
+      alt={image.alt}
+    />
+  );
 }
 
 /** The core features as a centred running order, each with its platforms. */

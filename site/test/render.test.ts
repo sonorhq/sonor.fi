@@ -126,7 +126,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("See all releases on GitHub.");
   });
 
-  it("presents the core features, the Octo features and the coming list, with no picture until one is ready", async () => {
+  it("presents the core features, the Octo features and the coming list, with pictures only for ready ones", async () => {
     const { html } = await render("/");
     expect(html).toContain("<h2>Made for listening</h2>");
     expect(html).toContain("<h3>Offline downloads</h3>");
@@ -136,7 +136,11 @@ describe("the rendered pages", () => {
     expect(html).toContain("such as Soulseek or Lidarr");
     expect(html).toContain("<h2>Coming</h2>");
     expect(html).toContain("Jellyfin, Emby and Plex servers");
-    expect(html).not.toContain('class="feature-img"');
+    expect(html).toContain("Sonor never downloads music from the internet itself");
+    expect(html).toContain("/screenshots/features/copies.webp");
+    expect(html).toContain("/screenshots/features/discovery.webp");
+    expect(html).toContain("The Sonor app icon in six accent colours");
+    expect(html).toContain("/screenshots/desktop-nowplaying.webp");
   });
 
   it("renders the privacy page with its heading and its own canonical", async () => {

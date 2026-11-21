@@ -4,7 +4,7 @@ import { THEME_COLOR } from "../src/brand";
 const SITE = "https://sonor.fi";
 const IMAGE = `${SITE}/sonor-social-1200x630.png`;
 const IMAGE_ALT =
-  "A cream turntable with an orange tonearm on walnut, beside the sonor wordmark. Under it: 'Your music, from your own server.' and sonor.fi.";
+  "The Sonor mark, five orange rounded bars forming a wave, above the lower-case sonor wordmark on a dark brown tile.";
 
 export default function Head() {
   const { urlPathname, is404, errorWhileRendering, config } = usePageContext();

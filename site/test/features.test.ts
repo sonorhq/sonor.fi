@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../src/features";
+import { ACCENT_ICONS, COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../src/features";
 
 const ALL: Feature[] = [...CORE_FEATURES, ...OCTO_FEATURES];
 
@@ -29,10 +29,23 @@ describe("the feature copy", () => {
   });
 
   it("shows a picture only when it is ready", () => {
-    const image = { src: "/screenshots/x.webp", alt: "A picture", ready: true };
+    const image = { src: "/screenshots/x.webp", width: 10, height: 10, alt: "A picture", ready: true };
     const block = { id: "x", title: "X", text: "X" };
     expect(readyImage({ ...block, image })).toBe(image);
     expect(readyImage({ ...block, image: { ...image, ready: false } })).toBeUndefined();
     expect(readyImage(block)).toBeUndefined();
+  });
+
+  it("gives every ready picture a size", () => {
+    for (const feature of ALL) {
+      const image = readyImage(feature);
+      if (!image) continue;
+      expect(image.width).toBeGreaterThan(0);
+      expect(image.height).toBeGreaterThan(0);
+    }
+  });
+
+  it("shows six accent icons", () => {
+    expect(ACCENT_ICONS).toHaveLength(6);
   });
 });
