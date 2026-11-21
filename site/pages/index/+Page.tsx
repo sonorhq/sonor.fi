@@ -1,36 +1,9 @@
 import { useData } from "vike-react/useData";
 import { DownloadTabs, PrimaryButton, PrimaryMeta, usePlatform } from "../../src/components/Downloads";
+import { ComingList, CoreFeatures, OctoFeatures } from "../../src/components/Features";
 import { Lockup } from "../../src/components/Logo";
 import { Screenshots } from "../../src/components/Screenshots";
 import type { Data } from "./+data";
-
-const FEATURES = [
-  {
-    title: "Offline downloads",
-    text: "Keep albums and songs on the device and play them with no connection.",
-    where: "Desktop · Android · iPhone",
-  },
-  {
-    title: "Gapless playback",
-    text: "Live albums and continuous mixes run straight through, with no silence between tracks.",
-    where: "Everywhere",
-  },
-  {
-    title: "CarPlay and Android Auto",
-    text: "Browse your library and play from the car's own screen.",
-    where: "iPhone · Android",
-  },
-  {
-    title: "Lyrics",
-    text: "Follow the words of the song that's playing.",
-    where: "Everywhere",
-  },
-  {
-    title: "Media keys and Now Playing",
-    text: "Your keyboard's media keys work, and the track shows up in the system's Now Playing controls.",
-    where: "macOS · Windows · Linux",
-  },
-];
 
 export default function Page() {
   const { platform: serverPlatform, downloads } = useData<Data>();
@@ -82,15 +55,28 @@ export default function Page() {
           <p className="lede">
             The things a player has to get right, for libraries you host yourself on Subsonic, OpenSubsonic or Navidrome.
           </p>
-          <ul className="features">
-            {FEATURES.map((feature) => (
-              <li key={feature.title}>
-                <h3>{feature.title}</h3>
-                <p>{feature.text}</p>
-                <span className="where">{feature.where}</span>
-              </li>
-            ))}
-          </ul>
+          <CoreFeatures />
+        </div>
+      </section>
+
+      <section id="octo">
+        <div className="col">
+          <h2>With an Octo server</h2>
+          <p className="lede">
+            Octo is a server extension that runs in front of Navidrome. Everything here needs an Octo server; on any other
+            server, Sonor is the player above.
+          </p>
+        </div>
+        <div className="col wide">
+          <OctoFeatures />
+        </div>
+      </section>
+
+      <section id="coming">
+        <div className="col">
+          <h2>Coming</h2>
+          <p className="lede">Not in Sonor yet.</p>
+          <ComingList />
         </div>
       </section>
 
