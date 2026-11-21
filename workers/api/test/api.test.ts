@@ -34,8 +34,7 @@ const points: AnalyticsEngineDataPoint[] = [];
 const testEnv = {
   API_STATE: env.API_STATE,
   RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
-  UPSTREAM_CHECKS: env.UPSTREAM_CHECKS,
-} as Cloudflare.Env;
+} as unknown as Cloudflare.Env;
 
 // Runs the Worker the way the runtime does: the response first, then the waitUntil work (recording) before the test looks.
 const run = async (req: Request, environment: Cloudflare.Env = testEnv) => {
@@ -205,6 +204,7 @@ describe("GitHub release lookup", () => {
 
   it.each([
     { name: "a 200", fetchFn: ok([RELEASE]), outcome: "200" },
+    { name: "a 200 with only drafts", fetchFn: ok([release("v2.0.0", { draft: true, published_at: null })]), outcome: "other" },
     { name: "a 500", fetchFn: async () => new Response("oops", { status: 500 }), outcome: "other" },
     { name: "a timeout", fetchFn: () => Promise.reject(new DOMException("timed out", "TimeoutError")), outcome: "timeout" },
     { name: "a network error", fetchFn: () => Promise.reject(new TypeError("network down")), outcome: "error" },
@@ -224,6 +224,28 @@ describe("GitHub release lookup", () => {
     const recovered = await lookup(ok([OLD]));
     expect(recovered?.body).toBe(JSON.stringify(OLD));
     expect(recovered?.fetchedAt).toBeGreaterThan(Date.now() - 1000);
+  });
+
+  it("drops the fetch time of an entry from before retryAt existed, so a failed refresh answers 503 at once", async () => {
+    await runInDurableObject(stub(), (_, state) => state.storage.put("release", { body: RELEASE_BODY, fetchedAt: Date.now() }));
+    const served = await lookup(fail);
+    expect(served?.body).toBe(RELEASE_BODY);
+    expect(served?.fetchedAt).toBe(0);
+    expect((await storedRelease())?.fetchedAt).toBe(0);
+  });
+
+  it("writes the outcome to the upstream dataset as one point, with no client data", async () => {
+    const written = await runInDurableObject(stub(), async (instance) => {
+      const binding = (instance as unknown as { env: Cloudflare.Env }).env.UPSTREAM_CHECKS;
+      const spy = vi.spyOn(binding, "writeDataPoint");
+      try {
+        await instance.latest(async () => new Response("limit", { status: 429 }));
+        return [...spy.mock.calls];
+      } finally {
+        spy.mockRestore();
+      }
+    });
+    expect(written).toEqual([[{ blobs: ["429"], doubles: [1] }]]);
   });
 });
 

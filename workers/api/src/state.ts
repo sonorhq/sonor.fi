@@ -116,7 +116,12 @@ export class ApiState extends DurableObject {
     }
     if (!cached) return null;
     // A failed refresh keeps the copy and its fetch time, and only delays the next try.
-    const retried: CachedRelease = { ...cached, retryAt: Date.now() + RETRY_AFTER_FAILURE_MS };
+    // An entry without retryAt predates that check, so its fetchedAt can't be trusted: it goes to 0 and the 503 starts at once.
+    const retried: CachedRelease = {
+      ...cached,
+      fetchedAt: cached.retryAt === undefined ? 0 : cached.fetchedAt,
+      retryAt: Date.now() + RETRY_AFTER_FAILURE_MS,
+    };
     await this.ctx.storage.put("release", retried);
     return retried;
   }
@@ -138,7 +143,9 @@ export class ApiState extends DurableObject {
       });
       const releases = res.ok ? ((await res.json()) as GitHubRelease[]) : undefined;
       const release = releases && newest(releases);
-      return { outcome: outcomeOf(res.status), body: release && JSON.stringify(release) };
+      // A 200 with no published release isn't an answer worth a status of its own.
+      const outcome: UpstreamOutcome = res.status === 200 && !release ? "other" : outcomeOf(res.status);
+      return { outcome, body: release && JSON.stringify(release) };
     } catch (error) {
       // Network error, timeout or a body that isn't JSON: the caller falls back to the stale copy.
       return { outcome: error instanceof DOMException && error.name === "TimeoutError" ? "timeout" : "error" };

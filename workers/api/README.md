@@ -43,7 +43,7 @@ One Analytics Engine data point per `GET /v1/releases/latest` (dataset `sonor_re
 
 Analytics Engine stamps each point with the time it was written, to the second. The Worker doesn't store a date of its own.
 
-Each time the Worker asks GitHub, it also writes one point to `sonor_upstream_checks` (binding `UPSTREAM_CHECKS`). `blob1` is what GitHub answered: `200`, `403`, `429`, `other` (any other HTTP status), `timeout`, or `error` (a network error, or a body that isn't JSON). `double1` is `1`. It holds no client data, and it counts refreshes, not checks, so a stale spell shows up as a run of `403`, `429` or `timeout` points.
+Each time the Worker asks GitHub, it also writes one point to `sonor_upstream_checks` (binding `UPSTREAM_CHECKS`). `blob1` is what GitHub answered: `200`, `403`, `429`, `other` (any other HTTP status, or a `200` with no published release), `timeout`, or `error` (a network error, or a body that isn't JSON). `double1` is `1`. It holds no client data, and it counts refreshes, not checks, so a stale spell shows up as a run of `403`, `429` or `timeout` points.
 
 The salt is 32 random bytes, created on the first request of each UTC month and held in the `ApiState` Durable Object.
 The first request of a new month overwrites last month's salt, and an alarm set for the next UTC month start (00:00 UTC on the 1st) deletes it even without traffic.
