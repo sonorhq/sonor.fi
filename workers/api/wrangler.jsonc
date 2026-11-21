@@ -11,5 +11,8 @@
     "bindings": [{ "name": "API_STATE", "class_name": "ApiState" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ApiState"] }],
-  "analytics_engine_datasets": [{ "binding": "RELEASE_CHECKS", "dataset": "sonor_release_checks" }]
+  "analytics_engine_datasets": [
+    { "binding": "RELEASE_CHECKS", "dataset": "sonor_release_checks" },
+    { "binding": "UPSTREAM_CHECKS", "dataset": "sonor_upstream_checks" }
+  ]
 }

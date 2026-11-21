@@ -3,6 +3,7 @@
 `sonor-api` serves `api.sonor.fi`, the API the Sonor apps call. Today it answers the update check: it serves the newest
 release of [sonorhq/sonor](https://github.com/sonorhq/sonor) as GitHub's JSON, caches it for five minutes, and counts
 checks anonymously, without keeping who made them once the month's salt is gone (see the honest limit below).
+A copy GitHub stops answering for is served for up to an hour, then not at all, so the apps ask GitHub themselves.
 
 ## Endpoints
 
@@ -21,7 +22,9 @@ checks anonymously, without keeping who made them once the month's salt is gone 
 Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40, and becomes `unknown` when empty (`X-Sonor-Lang` and `X-Sonor-Expires`: `""`).
 
 - `200` with the release as `application/json`. The release is the newest non-draft one, pre-releases included, by publish date.
+- `503` with `Retry-After: 60` and a JSON error when the copy is more than an hour old, counted from GitHub's last good answer. The apps fall back to GitHub directly, which corrects a stale copy.
 - `502` when GitHub fails and nothing is cached. The apps fall back to GitHub directly, so this is never fatal for them.
+- `X-Sonor-Release-Age` on the `200` and `503`: seconds since GitHub last answered with the release. A failed refresh doesn't reset it.
 - `HEAD` answers like `GET` without a body and without counting. `OPTIONS` gets `204` with the CORS headers. Other methods get `405`, other paths `404`.
 
 `GET /v1/health` answers `200` with `ok`, without counting. It's for uptime checks.
@@ -39,6 +42,8 @@ One Analytics Engine data point per `GET /v1/releases/latest` (dataset `sonor_re
 | `double1` | `1` |
 
 Analytics Engine stamps each point with the time it was written, to the second. The Worker doesn't store a date of its own.
+
+Each time the Worker asks GitHub, it also writes one point to `sonor_upstream_checks` (binding `UPSTREAM_CHECKS`). `blob1` is what GitHub answered: `200`, `403`, `429`, `other` (any other HTTP status, or a `200` with no published release), `timeout`, or `error` (a network error, or a body that isn't JSON). `double1` is `1`. It holds no client data, and it counts refreshes, not checks, so a stale spell shows up as a run of `403`, `429` or `timeout` points.
 
 The salt is 32 random bytes, created on the first request of each UTC month and held in the `ApiState` Durable Object.
 The first request of a new month overwrites last month's salt, and an alarm set for the next UTC month start (00:00 UTC on the 1st) deletes it even without traffic.
@@ -86,13 +91,15 @@ To set one, create a fine-grained personal access token with no permissions beyo
 pnpm exec wrangler secret put GITHUB_TOKEN
 ```
 
-The Worker sends it as `Authorization: Bearer` when it's set, and sends no authorization when it isn't. The Worker works either way.
+The Worker sends it as `Authorization: Bearer` when it's set, and sends no authorization when it isn't. The token is never logged.
+
+Without the token the endpoint goes stale: the Cloudflare IPs the Worker shares can use up GitHub's 60 an hour, GitHub then answers `403` or `429`, and the copy stops being served an hour after GitHub last answered (`503`).
 
 ## Layout
 
 - `src/index.ts`: routing, header clamping, the data point (recorded through `waitUntil`).
 - `src/state.ts`: the `ApiState` Durable Object (SQLite): the monthly salt, the cached release, the optional GitHub token.
-- `wrangler.jsonc`: the route (`api.sonor.fi`, no `workers.dev` URL), bindings (`API_STATE`, `RELEASE_CHECKS`), the SQLite migration, observability off.
+- `wrangler.jsonc`: the route (`api.sonor.fi`, no `workers.dev` URL), bindings (`API_STATE`, `RELEASE_CHECKS`, `UPSTREAM_CHECKS`), the SQLite migration, observability off.
 - `scripts/stats.sh`: prints the release check counts from the Analytics Engine dataset (see "Querying the counts").
 - `test/api.test.ts`: the tests, run inside workerd with `@cloudflare/vitest-plugin`. GitHub is stubbed, so they need no network.
 
