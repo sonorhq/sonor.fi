@@ -1,0 +1,32 @@
+// The app screenshots on the home page, from the owner's app (dark only, as the app is).
+// A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
+// An entry shows only when `ready` is true, so a shot can be added before its files are.
+
+export interface Screenshot {
+  id: string;
+  caption: string;
+  /** Describes what the screenshot shows; read by screen readers. */
+  alt: string;
+  ready: boolean;
+  /** The desktop file, 1600 × 1004 (about 16:10). */
+  desktop: string;
+  /** The phone file, 900 × 1950 (9:19.5), shown beside the desktop one when present. */
+  phone?: string;
+}
+
+export const SCREENSHOTS: Screenshot[] = [
+  {
+    id: "home",
+    caption: "Home",
+    alt: "Sonor's home screen: album grids for recently played and recently added music, with the now-playing panel on the right.",
+    ready: true,
+    desktop: "/screenshots/desktop-home-dark.webp",
+  },
+  {
+    id: "playlist",
+    caption: "Playlist",
+    alt: "A playlist page in Sonor: the playlist's header above its list of tracks, with title, album and time for each.",
+    ready: true,
+    desktop: "/screenshots/desktop-playlist-dark.webp",
+  },
+];

@@ -43,6 +43,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # Vike builds the Worker and its assets into site/dist; wrangler deploys that build.
+      - name: Build the website
+        run: pnpm --filter ./site build
+
       # Static assets on Workers (the successor of Pages), with sonor.fi as custom domain.
       - name: Deploy the website (sonor.fi)
         run: pnpm --filter ./site exec wrangler deploy

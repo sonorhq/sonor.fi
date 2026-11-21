@@ -1,14 +1,15 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sonor-fi",
-  "compatibility_date": "2026-11-16",
-  "main": "src/index.ts",
-  // Nothing about visitors is logged; the Worker only redirects and adds headers.
+  "compatibility_date": "2026-11-08",
+  "main": "vike:server",
+  // Nothing about visitors is logged: the Worker renders pages, redirects and adds headers, and keeps no records.
   "observability": { "enabled": false },
   "workers_dev": true,
   "routes": [
     { "pattern": "sonor.fi", "custom_domain": true },
     { "pattern": "www.sonor.fi", "custom_domain": true }
   ],
-  "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true }
+  // The build writes the static files; the Worker sees every request first, for the redirects and headers.
+  "assets": { "binding": "ASSETS", "run_worker_first": true }
 }
