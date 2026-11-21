@@ -1,7 +1,5 @@
 // The app screenshots on the home page, from the owner's app (dark only, as the app is).
 // A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
-// TODO: these shots still show the old logo and palette in the sidebar. Retake them from a new build with a
-// demo user (1600 × 1004, dark) and replace the files in public/screenshots; don't edit the old ones.
 // An entry shows only when `ready` is true, so a shot can be added before its files are.
 
 export interface Screenshot {
@@ -20,15 +18,22 @@ export const SCREENSHOTS: Screenshot[] = [
   {
     id: "home",
     caption: "Home",
-    alt: "Sonor's home screen: quick picks and album grids for recently played and recently added music, with the play queue on the right.",
+    alt: "Sonor's home screen: quick picks and album grids for recently played and recently added music, with the play queue open on the right.",
     ready: true,
-    desktop: "/screenshots/desktop-home-dark.webp",
+    desktop: "/screenshots/desktop-home.webp",
   },
   {
     id: "discover",
     caption: "Discover",
-    alt: "Sonor's Discover page with an Octo server: mixes made for you, artist stations and charts, with the play queue on the right.",
+    alt: "Sonor's Discover page with an Octo server: mixes made for you, artist stations and charts, beside your own library.",
     ready: true,
-    desktop: "/screenshots/desktop-discover-dark.webp",
+    desktop: "/screenshots/desktop-discover.webp",
+  },
+  {
+    id: "nowplaying",
+    caption: "Now Playing",
+    alt: "Sonor's Now Playing view: the large cover of the current song with its title, artist and playback controls.",
+    ready: true,
+    desktop: "/screenshots/desktop-nowplaying.webp",
   },
 ];

@@ -58,7 +58,11 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 .features .where { display: block; margin-top: .55rem; font-size: .75rem; color: var(--note); letter-spacing: .02em; }
 
 /* feature pictures: optional, above the text, shown only once the file is ready */
-.feature-img { display: block; width: 100%; height: auto; border-radius: 12px; margin-bottom: 1.1rem; box-shadow: 0 0 0 1px var(--line-2); }
+.feature-visual { margin-bottom: 1.1rem; }
+.accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; padding: 1.25rem; border-radius: 12px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--line-2); }
+.accent-icons svg { width: 100%; height: auto; }
+@media (max-width: 560px) { .accent-icons { grid-template-columns: repeat(3, 1fr); } }
+.feature-img { display: block; width: 100%; height: auto; background: var(--bg-2); border-radius: 12px; margin-bottom: 1.1rem; box-shadow: 0 0 0 1px var(--line-2); }
 
 /* octo: cards, two across on a wide screen */
 .octo-grid { list-style: none; margin: 3rem auto 0; padding: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); text-align: left; }

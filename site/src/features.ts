@@ -3,8 +3,11 @@
 // a picture can be added before its file exists (like the app screenshots in screenshots.ts).
 
 export interface FeatureImage {
-  /** The file in public/screenshots/ or public/features/, 16:10 WebP. */
+  /** The file under public/screenshots/, WebP. */
   src: string;
+  /** The file's pixel size, so the browser reserves the space before it loads. */
+  width: number;
+  height: number;
   /** Describes what the picture shows; read by screen readers. */
   alt: string;
   ready: boolean;
@@ -17,7 +20,19 @@ export interface Feature {
   /** Where it works: a platform list, or "Everywhere". Only the core list shows it. */
   where?: string;
   image?: FeatureImage;
+  /** A built-in picture drawn in the page instead of a screenshot. */
+  visual?: "accent-icons";
 }
+
+/** The accent presets shown on the accent block, with the brand kit's dark tile for each (docs/brand/README.md). */
+export const ACCENT_ICONS = [
+  { name: "Sonor orange", accent: "#f4743b", tile: "#291006" },
+  { name: "Rose", accent: "#f43f5e", tile: "#2a0f11" },
+  { name: "Violet", accent: "#8b5cf6", tile: "#19142b" },
+  { name: "Blue", accent: "#3b82f6", tile: "#0b182d" },
+  { name: "Teal", accent: "#14b8a6", tile: "#001e1a" },
+  { name: "Green", accent: "#22c55e", tile: "#071e0d" },
+];
 
 /** The picture of a feature, when it has one that is ready to show. */
 export function readyImage(feature: Feature): FeatureImage | undefined {
@@ -31,6 +46,13 @@ export const CORE_FEATURES: Feature[] = [
     title: "Offline downloads",
     text: "Keep albums, playlists and songs on the device and play them with no connection.",
     where: "Desktop · Android · iPhone",
+    image: {
+      src: "/screenshots/features/offline.webp",
+      width: 1600,
+      height: 1005,
+      alt: "The Downloads tab of Sonor's library, listing the albums and songs kept on the device for offline play.",
+      ready: true,
+    },
   },
   {
     id: "gapless",
@@ -49,6 +71,13 @@ export const CORE_FEATURES: Feature[] = [
     title: "Synced lyrics",
     text: "Lyrics follow the line being sung. If your server has none, Sonor can look them up on LRCLIB, and you can switch that off.",
     where: "Everywhere",
+    image: {
+      src: "/screenshots/features/lyrics.webp",
+      width: 1600,
+      height: 1005,
+      alt: "Sonor's lyrics view, with the line being sung highlighted as the song plays.",
+      ready: true,
+    },
   },
   {
     id: "car",
@@ -79,6 +108,7 @@ export const CORE_FEATURES: Feature[] = [
     title: "Accent colour and app icon",
     text: "Pick an accent colour in Settings and the app icon follows it: on the Dock (macOS), the taskbar (Windows), the window icon (Linux; the app menu keeps the original), and the home screen (Android and iPhone). Android and iPhone use the nearest preset colour.",
     where: "macOS · Windows · Linux · Android · iPhone",
+    visual: "accent-icons",
   },
   {
     id: "scrobbling",
@@ -100,6 +130,13 @@ export const OCTO_FEATURES: Feature[] = [
     id: "discovery",
     title: "Mixes, stations and charts",
     text: "Made-for-you mixes, genre and artist mixes and stations appear on Home and Discover, beside your library. Charts, by country, have their own page, reached from Discover.",
+    image: {
+      src: "/screenshots/features/discovery.webp",
+      width: 1600,
+      height: 1005,
+      alt: "Sonor's Charts page for the United States, with the Top songs chart playing and the play queue open on the right.",
+      ready: true,
+    },
   },
   {
     id: "search",
@@ -115,6 +152,13 @@ export const OCTO_FEATURES: Feature[] = [
     id: "copies",
     title: "Choose the copy you want",
     text: "When Octo finds several copies, you see their quality, format, size and source, and pick the one to get.",
+    image: {
+      src: "/screenshots/features/copies.webp",
+      width: 1080,
+      height: 1310,
+      alt: "The Choose a copy dialog in Sonor, listing copies of a song with their format, size and source. The sources' usernames are blurred.",
+      ready: true,
+    },
   },
   {
     id: "family",
@@ -125,6 +169,13 @@ export const OCTO_FEATURES: Feature[] = [
     id: "lyrics-top",
     title: "Lyrics and top songs",
     text: "Choose another lyric source when the first one is wrong. Artist pages show their top songs, ranked from your library and the catalogue, and some albums have animated covers.",
+    image: {
+      src: "/screenshots/features/lyrics-top.webp",
+      width: 1600,
+      height: 1005,
+      alt: "An artist page in Sonor with the Popular list of top songs.",
+      ready: true,
+    },
   },
 ];
 

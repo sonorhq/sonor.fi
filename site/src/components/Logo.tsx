@@ -3,7 +3,7 @@
 import "../wave.css";
 import { WORDMARK_PATH } from "./wordmark";
 
-const BARS = [
+export const BARS = [
   { x: 21.41, y: 36.65 },
   { x: 33.66, y: 45.15 },
   { x: 45.91, y: 36.65 },
@@ -28,6 +28,20 @@ export function Lockup() {
         <Bars animated />
       </g>
       <path d={WORDMARK_PATH} fill="#F6F4F1" transform="translate(-3.96,472) scale(0.20833)" />
+    </svg>
+  );
+}
+
+/** The kit's app icon for one accent: a dark tinted tile with the accent's bars (dark-mode rule). */
+export function AppIcon({ tile, bars }: { tile: string; bars: string }) {
+  return (
+    <svg viewBox="0 0 100 100" width={96} height={96} aria-hidden="true">
+      <rect width={100} height={100} rx={22.5} fill={tile} />
+      <g transform="translate(-0.73,-0.73) scale(1.01452)">
+        {BARS.map((b, i) => (
+          <rect key={i} x={b.x} y={b.y} width={8.17} height={26.7} rx={4.08} fill={bars} />
+        ))}
+      </g>
     </svg>
   );
 }

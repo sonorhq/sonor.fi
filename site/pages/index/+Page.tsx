@@ -66,6 +66,10 @@ export default function Page() {
             Octo is a server extension that runs in front of Navidrome. Everything here needs an Octo server; on any other
             server, Sonor is the player above.
           </p>
+          <p className="lede">
+            Sonor never downloads music from the internet itself. Your Octo server does, with the tools you connect to it,
+            and Sonor only shows what it finds.
+          </p>
         </div>
         <div className="col wide">
           <OctoFeatures />
