@@ -1,6 +1,7 @@
 // The one place the logo is drawn: the kit's Onada bars and outlined wordmark, inline so the hero bars can
 // wave (wave.css; static under reduced motion).
 import "../wave.css";
+import { TILE_PATH } from "./tile";
 import { WORDMARK_PATH } from "./wordmark";
 
 export const BARS = [
@@ -36,7 +37,7 @@ export function Lockup() {
 export function AppIcon({ tile, bars }: { tile: string; bars: string }) {
   return (
     <svg viewBox="0 0 100 100" width={96} height={96} aria-hidden="true">
-      <rect width={100} height={100} rx={22.5} fill={tile} />
+      <path d={TILE_PATH} fill={tile} />
       <g transform="translate(-0.73,-0.73) scale(1.01452)">
         {BARS.map((b, i) => (
           <rect key={i} x={b.x} y={b.y} width={8.17} height={26.7} rx={4.08} fill={bars} />

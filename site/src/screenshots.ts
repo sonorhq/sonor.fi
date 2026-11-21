@@ -31,8 +31,8 @@ export const SCREENSHOTS: Screenshot[] = [
   },
   {
     id: "nowplaying",
-    caption: "Now Playing",
-    alt: "Sonor's Now Playing view: the large cover of the current song with its title, artist and playback controls.",
+    caption: "Playlist and Now Playing",
+    alt: "A playlist page in Sonor with the playing song highlighted, and the Now Playing panel on the right with its cover.",
     ready: true,
     desktop: "/screenshots/desktop-nowplaying.webp",
   },

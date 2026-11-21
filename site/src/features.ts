@@ -49,8 +49,8 @@ export const CORE_FEATURES: Feature[] = [
     image: {
       src: "/screenshots/features/offline.webp",
       width: 1600,
-      height: 1005,
-      alt: "The Downloads tab of Sonor's library, listing the albums and songs kept on the device for offline play.",
+      height: 1000,
+      alt: "The Downloads tab of Your Library in Sonor, listing the albums and songs kept on the device for offline play.",
       ready: true,
     },
   },
@@ -154,8 +154,8 @@ export const OCTO_FEATURES: Feature[] = [
     text: "When Octo finds several copies, you see their quality, format, size and source, and pick the one to get.",
     image: {
       src: "/screenshots/features/copies.webp",
-      width: 1080,
-      height: 1310,
+      width: 1600,
+      height: 929,
       alt: "The Choose a copy dialog in Sonor, listing copies of a song with their format, size and source. The sources' usernames are blurred.",
       ready: true,
     },

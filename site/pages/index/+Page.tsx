@@ -67,8 +67,8 @@ export default function Page() {
             server, Sonor is the player above.
           </p>
           <p className="lede">
-            Sonor never downloads music from the internet itself. Your Octo server does, with the tools you connect to it,
-            and Sonor only shows what it finds.
+            Sonor never downloads music from the internet itself. Your Octo server does, with the tools you connect to it;
+            Sonor only shows what it finds and passes on what you pick.
           </p>
         </div>
         <div className="col wide">

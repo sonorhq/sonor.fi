@@ -26,6 +26,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-hi); out
 .wide { max-width: 62rem; }
 h2 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem); line-height: 1.15; letter-spacing: -.02em; font-weight: 650; margin: 0 0 .75rem; text-wrap: balance; }
 .lede { color: var(--muted); font-size: 1.0625rem; margin: 0 auto; max-width: 32rem; text-wrap: pretty; }
+.lede + .lede { margin-top: .75rem; }
 section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 
 /* hero */
@@ -47,7 +48,7 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 .scroll-cue::after { content: ""; width: 1px; height: 2.25rem; background: linear-gradient(var(--faint), transparent); }
 
 /* screens */
-.screens { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); margin: 3rem auto 0; max-width: 62rem; }
+.screens { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin: 3rem auto 0; max-width: 62rem; }
 
 /* features: a centred running order */
 .features { list-style: none; margin: 3rem auto 0; padding: 0; max-width: 34rem; }
@@ -59,8 +60,9 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 
 /* feature pictures: optional, above the text, shown only once the file is ready */
 .feature-visual { margin-bottom: 1.1rem; }
-.accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; padding: 1.25rem; border-radius: 12px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--line-2); }
+.accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; padding: 1.25rem; border-radius: 12px; background: var(--bg); box-shadow: 0 0 0 1px var(--line-2); }
 .accent-icons svg { width: 100%; height: auto; }
+@media (max-width: 700px) { .shot { max-width: 100%; } }
 @media (max-width: 560px) { .accent-icons { grid-template-columns: repeat(3, 1fr); } }
 .feature-img { display: block; width: 100%; height: auto; background: var(--bg-2); border-radius: 12px; margin-bottom: 1.1rem; box-shadow: 0 0 0 1px var(--line-2); }
 
@@ -140,7 +142,7 @@ footer code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; 
 .bar-0 { --wave: bar-wave-0; } .bar-1 { --wave: bar-wave-1; } .bar-2 { --wave: bar-wave-2; } .bar-3 { --wave: bar-wave-3; } .bar-4 { --wave: bar-wave-4; }
 @media (prefers-reduced-motion: reduce) { .lockup-img .bar { animation: none; } }
 .shot-desk, .shot-phone { display: block; height: auto; }
-.shot { margin: 0; position: relative; display: flex; flex-direction: column; gap: .75rem; }
+.shot { flex: 1 1 min(100%, 26rem); max-width: calc(50% - 1rem); margin: 0; position: relative; display: flex; flex-direction: column; gap: .75rem; }
 .shot figcaption { color: var(--faint); font-size: .8125rem; }
 .shot-phone { position: absolute; right: 0; bottom: -8%; width: 19%; border-radius: 15% / 7%; box-shadow: 0 30px 70px -18px rgb(0 0 0 / .75), 0 0 0 1px rgb(246 244 241 / .1); }
 .shot-desk { width: 100%; border-radius: 12px; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .7), 0 0 0 1px rgb(246 244 241 / .09); }
