@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <nav aria-label="Footer">
             <a href="https://github.com/sonorhq/sonor/releases">Releases</a>
             <a href="/privacy">Privacy</a>
-            <a href="https://github.com/sonorhq/sonor/releases">Checksums</a>
+            <a href="/#download">Checksums</a>
             <a href="https://github.com/sonorhq/sonor/issues">Report a bug</a>
           </nav>
           <p>

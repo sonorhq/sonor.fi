@@ -41,7 +41,7 @@ export default function Page() {
     <>
       <section className="hero">
         <div className="col">
-          <h1 style={{ margin: 0 }}>
+          <h1 className="hero-title">
             <Lockup />
           </h1>
           <p className="tagline rise d1">
@@ -66,7 +66,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section id="see" style={{ paddingTop: "2rem" }}>
+      <section id="see" className="see-section">
         <div className="col">
           <h2>Your library, wherever you listen</h2>
           <p className="lede">The same player on macOS, Windows, Linux, Android and iPhone, talking straight to your server.</p>

@@ -10,7 +10,7 @@ export const OS_NAMES: Record<OS, string> = {
   linux: "Linux",
   android: "Android",
   ios: "iPhone",
-  unknown: "macOS",
+  unknown: "your platform",
 };
 
 /** The tabs, in the order of the page; the notes are what the platform adds. */
@@ -122,19 +122,23 @@ export function DownloadTabs({ platform, downloads }: { platform: Platform; down
   // The visitor's platform, once known; an unknown system has none, so no tab is marked.
   const detected = platform.os === "unknown" ? undefined : platform.os;
   const [selected, setSelected] = useState<OS>(detected ?? FIRST_TAB);
-  useEffect(() => {
-    if (detected) setSelected(detected);
-  }, [detected]);
+  useEffect(() => setSelected(detected ?? FIRST_TAB), [detected]);
 
   const select = (os: OS, focus: boolean) => {
     setSelected(os);
     if (focus) document.getElementById(`tab-${os}`)?.focus();
   };
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
-    if (!step) return;
+    const targets: Record<string, number> = {
+      ArrowRight: (index + 1) % TABS.length,
+      ArrowLeft: (index - 1 + TABS.length) % TABS.length,
+      Home: 0,
+      End: TABS.length - 1,
+    };
+    const target = targets[event.key];
+    if (target === undefined) return;
     event.preventDefault();
-    select(TABS[(index + step + TABS.length) % TABS.length].os, true);
+    select(TABS[target].os, true);
   };
 
   return (
@@ -153,7 +157,12 @@ export function DownloadTabs({ platform, downloads }: { platform: Platform; down
             onKeyDown={(event) => onKeyDown(event, index)}
           >
             {OS_NAMES[tab.os]}
-            {tab.os === detected ? <span className="here" title="Your platform" /> : null}
+            {tab.os === detected ? (
+              <>
+                <span className="here" aria-hidden="true" />
+                <span className="sr-only"> (your platform)</span>
+              </>
+            ) : null}
           </button>
         ))}
       </div>
@@ -182,7 +191,7 @@ export function DownloadTabs({ platform, downloads }: { platform: Platform; down
 function Panel({ os, note, downloads, hidden }: { os: Exclude<OS, "unknown">; note: string; downloads: Downloads | null; hidden: boolean }) {
   const files = downloads ? (groupByOS(downloads.files).find((group) => group.os === os)?.files ?? []) : [];
   return (
-    <div className="panel" role="tabpanel" id={`panel-${os}`} aria-labelledby={`tab-${os}`} hidden={hidden}>
+    <div className="panel" role="tabpanel" tabIndex={0} id={`panel-${os}`} aria-labelledby={`tab-${os}`} hidden={hidden}>
       <header>
         <h3>{OS_NAMES[os]}</h3>
         <span>{note}</span>
