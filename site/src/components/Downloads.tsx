@@ -1,5 +1,5 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { FORMAT_LABELS, RELEASES_PAGE, groupByOS, pickFile, type DownloadFile } from "../downloads";
+import { FORMAT_LABELS, RELEASES_PAGE, TESTFLIGHT, groupByOS, pickFile, type DownloadFile } from "../downloads";
 import { detectInBrowser } from "../browser-platform";
 import { parseOS, type OS, type Platform } from "../platform";
 import type { Downloads } from "../../pages/index/+data";
@@ -68,10 +68,10 @@ function primaryFor(platform: Platform, downloads: Downloads | null): Primary {
   const name = OS_NAMES[os];
   if (os === "ios") {
     return {
-      label: "iPhone beta, by invitation",
-      href: "#download",
+      label: "Join the iPhone beta",
+      href: TESTFLIGHT,
       file: false,
-      meta: "TestFlight beta by invitation · App Store coming",
+      meta: "Public TestFlight beta · App Store coming",
     };
   }
   if (!downloads) {
@@ -199,7 +199,8 @@ function Panel({ os, note, downloads, hidden }: { os: Exclude<OS, "unknown">; no
       {os === "ios" ? (
         <div className="soon">
           <p>
-            <b>TestFlight beta, by invitation.</b> The App Store release is coming.
+            <b>Public TestFlight beta.</b> Install TestFlight, then{" "}
+            <a href={TESTFLIGHT}>join the Sonor beta</a>. The App Store release is coming.
           </p>
         </div>
       ) : files.length > 0 ? (

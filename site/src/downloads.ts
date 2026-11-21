@@ -5,6 +5,8 @@
 import type { OS, Platform } from "./platform";
 
 export const RELEASES_PAGE = "https://github.com/sonorhq/sonor/releases";
+/** The public TestFlight link for the iPhone beta (1,000 testers at most). */
+export const TESTFLIGHT = "https://testflight.apple.com/join/4wTvkRjG";
 
 export interface ReleaseAsset {
   name: string;
