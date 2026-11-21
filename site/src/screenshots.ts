@@ -1,44 +1,32 @@
-// The app screenshots on the home page. To add one: put its two files in site/public/screenshots/
-// (names from the README), then set `ready: true` and write the alt text. Until then the page shows a
-// silhouette of the player. The page's pair shows the first entry.
+// The app screenshots on the home page, from the owner's app (dark only, as the app is).
+// A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
+// An entry shows only when `ready` is true, so a shot can be added before its files are.
 
 export interface Screenshot {
   id: string;
   caption: string;
-  /** Describes what the screenshot shows; read by screen readers once the file exists. */
+  /** Describes what the screenshot shows; read by screen readers. */
   alt: string;
-  /** False until the files exist. */
   ready: boolean;
-  /** Paths of the desktop (16:10) and phone (9:19.5) files. */
+  /** The desktop file, 1600 × 1004 (about 16:10). */
   desktop: string;
-  phone: string;
+  /** The phone file, 900 × 1950 (9:19.5), shown beside the desktop one when present. */
+  phone?: string;
 }
-
-const files = (id: string) => ({
-  desktop: `/screenshots/${id}-desktop.png`,
-  phone: `/screenshots/${id}-phone.png`,
-});
 
 export const SCREENSHOTS: Screenshot[] = [
   {
-    id: "library",
-    caption: "Your library",
-    alt: "Sonor's library: albums from the server in a grid, with the album being played at the bottom.",
-    ready: false,
-    ...files("library"),
+    id: "home",
+    caption: "Home",
+    alt: "Sonor's home screen: album grids for recently played and recently added music, with the now-playing panel on the right.",
+    ready: true,
+    desktop: "/screenshots/desktop-home-dark.webp",
   },
   {
-    id: "now-playing",
-    caption: "Now playing",
-    alt: "Sonor's now-playing screen: the cover, the track, the progress and the lyrics of the song.",
-    ready: false,
-    ...files("now-playing"),
-  },
-  {
-    id: "car",
-    caption: "In the car",
-    alt: "Sonor in the car: the browse and play screens as they show on CarPlay or Android Auto.",
-    ready: false,
-    ...files("car"),
+    id: "playlist",
+    caption: "Playlist",
+    alt: "A playlist page in Sonor: the playlist's header above its list of tracks, with title, album and time for each.",
+    ready: true,
+    desktop: "/screenshots/desktop-playlist-dark.webp",
   },
 ];
