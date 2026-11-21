@@ -86,8 +86,8 @@ describe("the rendered pages", () => {
 
   it("says iOS has no download yet, without a link", async () => {
     const { html } = await render("/", { "user-agent": UA.iphone });
-    expect(html).toContain("iPhone beta, by invitation");
-    expect(html).toContain("TestFlight beta by invitation · App Store coming");
+    expect(html).toContain("Join the iPhone beta");
+    expect(html).toContain("Public TestFlight beta · App Store coming");
     expect(html).not.toContain("Download for iPhone");
   });
 
