@@ -1,7 +1,5 @@
-// The one place the logo is drawn, so a brand-kit change is a one-file change. The bars are the kit's Onada
-// geometry (docs/brand in the app repo: five equal pill bars, round ends) and the wordmark is its outlined path.
-// The hero lockup waves: each bar slides along its own axis (src/wave.css, from the kit's animated mark) and
-// stands still under prefers-reduced-motion. The footer mark is static.
+// The one place the logo is drawn: the kit's Onada bars and outlined wordmark, inline so the hero bars can
+// wave (wave.css; static under reduced motion).
 import "../wave.css";
 import { WORDMARK_PATH } from "./wordmark";
 

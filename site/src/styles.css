@@ -132,9 +132,9 @@ footer code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lockup-img { display: block; width: min(21rem, 68vw); height: auto; margin: 0 auto 2.25rem; }
 .mark { width: 2rem; height: 2rem; display: block; margin: 0 auto 1.25rem; }
-.lockup-img .bar, .mark .bar { animation: var(--wave) 1.8s linear infinite; }
+.lockup-img .bar { animation: var(--wave) 1.8s linear infinite; }
 .bar-0 { --wave: bar-wave-0; } .bar-1 { --wave: bar-wave-1; } .bar-2 { --wave: bar-wave-2; } .bar-3 { --wave: bar-wave-3; } .bar-4 { --wave: bar-wave-4; }
-@media (prefers-reduced-motion: reduce) { .lockup-img .bar, .mark .bar { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .lockup-img .bar { animation: none; } }
 .shot-desk, .shot-phone { display: block; height: auto; }
 .shot { margin: 0; position: relative; display: flex; flex-direction: column; gap: .75rem; }
 .shot figcaption { color: var(--faint); font-size: .8125rem; }
