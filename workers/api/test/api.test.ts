@@ -7,7 +7,7 @@ import {
 } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
-import { CACHE_TTL_MS } from "../src/state";
+import { CACHE_TTL_MS, MAX_STALE_AGE_MS, type CachedRelease, type UpstreamOutcome } from "../src/state";
 
 const IP = "203.0.113.77";
 const BASE = "https://api.test";
@@ -34,6 +34,7 @@ const points: AnalyticsEngineDataPoint[] = [];
 const testEnv = {
   API_STATE: env.API_STATE,
   RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
+  UPSTREAM_CHECKS: env.UPSTREAM_CHECKS,
 } as Cloudflare.Env;
 
 // Runs the Worker the way the runtime does: the response first, then the waitUntil work (recording) before the test looks.
@@ -61,17 +62,22 @@ const request = (path: string, init: RequestInit = {}) => run(new Request(`${BAS
 // The release lookup runs inside the Durable Object, so tests drive it there with a stand-in for GitHub.
 const ok = (body: unknown) => async () => new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
 const fail = async () => new Response("rate limited", { status: 403 });
-const upstream = (fetchFn: typeof fetch, token?: string) =>
-  runInDurableObject(stub(), (instance) => instance.latest(fetchFn, token));
+const lookup = (fetchFn: typeof fetch, record?: (outcome: UpstreamOutcome) => void) =>
+  runInDurableObject(stub(), (instance) => instance.latest(fetchFn, undefined, record));
+const upstream = async (fetchFn: typeof fetch, token?: string) =>
+  (await runInDurableObject(stub(), (instance) => instance.latest(fetchFn, token)))?.body ?? null;
+const storedRelease = () => runInDurableObject(stub(), (_, state) => state.storage.get<CachedRelease>("release"));
 
-// Expires the cached release by moving its fetch time back past the TTL.
-const expireCache = () =>
+// Makes the cached release due for GitHub again, as if GitHub last answered with it `ageMs` ago.
+const expireCache = (ageMs = CACHE_TTL_MS + 1) =>
   runInDurableObject(stub(), async (_, state) => {
-    const cached = await state.storage.get<{ body: string; fetchedAt: number }>("release");
-    await state.storage.put("release", { ...cached, fetchedAt: Date.now() - CACHE_TTL_MS - 1 });
+    const cached = await state.storage.get<CachedRelease>("release");
+    await state.storage.put("release", { ...cached, fetchedAt: Date.now() - ageMs, retryAt: Date.now() - 1 });
   });
-const primeCache = (body: string) =>
-  runInDurableObject(stub(), (_, state) => state.storage.put("release", { body, fetchedAt: Date.now() }));
+const primeCache = (body: string, fetchedAt = Date.now()) =>
+  runInDurableObject(stub(), (_, state) =>
+    state.storage.put("release", { body, fetchedAt, retryAt: Date.now() + CACHE_TTL_MS }),
+  );
 
 beforeEach(async () => {
   points.length = 0;
@@ -156,8 +162,8 @@ describe("GitHub release lookup", () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         return new Response(JSON.stringify([RELEASE]));
       };
-      const bodies = await Promise.all([instance.latest(slow), instance.latest(slow), instance.latest(slow)]);
-      return { calls, bodies };
+      const cached = await Promise.all([instance.latest(slow), instance.latest(slow), instance.latest(slow)]);
+      return { calls, bodies: cached.map((entry) => entry?.body) };
     });
     expect(counts.calls).toBe(1);
     expect(counts.bodies).toEqual([RELEASE_BODY, RELEASE_BODY, RELEASE_BODY]);
@@ -165,6 +171,59 @@ describe("GitHub release lookup", () => {
 
   it("returns null when GitHub fails and nothing is cached", async () => {
     expect(await upstream(fail)).toBeNull();
+  });
+
+  it("keeps the copy and its fetch time through a failed refresh, so it ages from GitHub's last good answer", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache(30 * 60 * 1000);
+    const before = await storedRelease();
+    const served = await lookup(fail);
+    expect(served?.body).toBe(RELEASE_BODY);
+    expect(served?.fetchedAt).toBe(before?.fetchedAt);
+    expect((await storedRelease())?.fetchedAt).toBe(before?.fetchedAt);
+  });
+
+  it("serves a copy older than the bound, so the endpoint can tell it is too old", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache(MAX_STALE_AGE_MS + 1000);
+    const served = await lookup(fail);
+    expect(served?.body).toBe(RELEASE_BODY);
+    expect(Date.now() - (served?.fetchedAt ?? 0)).toBeGreaterThan(MAX_STALE_AGE_MS);
+  });
+
+  it.each([403, 429])("keeps the cached copy when GitHub answers %i", async (status) => {
+    await upstream(ok([RELEASE]));
+    await expireCache();
+    const before = await storedRelease();
+    const outcomes: string[] = [];
+    const served = await lookup(async () => new Response("rate limited", { status }), (outcome) => outcomes.push(outcome));
+    expect(served?.body).toBe(RELEASE_BODY);
+    expect(served?.fetchedAt).toBe(before?.fetchedAt);
+    expect((await storedRelease())?.body).toBe(RELEASE_BODY);
+    expect(outcomes).toEqual([String(status)]);
+  });
+
+  it.each([
+    { name: "a 200", fetchFn: ok([RELEASE]), outcome: "200" },
+    { name: "a 500", fetchFn: async () => new Response("oops", { status: 500 }), outcome: "other" },
+    { name: "a timeout", fetchFn: () => Promise.reject(new DOMException("timed out", "TimeoutError")), outcome: "timeout" },
+    { name: "a network error", fetchFn: () => Promise.reject(new TypeError("network down")), outcome: "error" },
+    { name: "a body that isn't JSON", fetchFn: async () => new Response("<html>"), outcome: "error" },
+  ])("records $name from GitHub as $outcome", async ({ fetchFn, outcome }) => {
+    const outcomes: string[] = [];
+    await lookup(fetchFn, (recorded) => outcomes.push(recorded));
+    expect(outcomes).toEqual([outcome]);
+  });
+
+  it("recovers once GitHub answers again, with a fresh fetch time", async () => {
+    await upstream(ok([RELEASE]));
+    await expireCache(MAX_STALE_AGE_MS + 1000);
+    expect((await lookup(fail))?.body).toBe(RELEASE_BODY);
+
+    await expireCache();
+    const recovered = await lookup(ok([OLD]));
+    expect(recovered?.body).toBe(JSON.stringify(OLD));
+    expect(recovered?.fetchedAt).toBeGreaterThan(Date.now() - 1000);
   });
 });
 
@@ -185,6 +244,46 @@ describe("GET /v1/releases/latest", () => {
     } as unknown as Cloudflare.Env;
     const res = await run(new Request(`${BASE}/v1/releases/latest`), down);
     expect(res.status).toBe(502);
+  });
+
+  it("says how long ago GitHub last answered with the copy, in seconds", async () => {
+    await primeCache(RELEASE_BODY, Date.now() - 120_000);
+    const res = await latest();
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(RELEASE_BODY);
+    const age = Number(res.headers.get("X-Sonor-Release-Age"));
+    expect(age).toBeGreaterThanOrEqual(120);
+    expect(age).toBeLessThan(125);
+  });
+
+  it("keeps serving a copy up to an hour old, with its age", async () => {
+    await primeCache(RELEASE_BODY, Date.now() - (MAX_STALE_AGE_MS - 60_000));
+    const res = await latest();
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(RELEASE_BODY);
+    expect(Number(res.headers.get("X-Sonor-Release-Age"))).toBeGreaterThanOrEqual(3540);
+  });
+
+  it("answers 503 with Retry-After and a JSON error once the copy is older than an hour", async () => {
+    await primeCache(RELEASE_BODY, Date.now() - MAX_STALE_AGE_MS - 1000);
+    const res = await latest();
+    expect(res.status).toBe(503);
+    expect(res.headers.get("Retry-After")).toBe("60");
+    expect(res.headers.get("Content-Type")).toBe("application/json");
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(Number(res.headers.get("X-Sonor-Release-Age"))).toBeGreaterThan(3600);
+    const text = await res.text();
+    expect(JSON.parse(text)).toEqual({ error: "Release too old to serve" });
+    expect(text).not.toContain("Sonor");
+  });
+
+  it("answers HEAD with the 503 and its headers, without a body", async () => {
+    await primeCache(RELEASE_BODY, Date.now() - MAX_STALE_AGE_MS - 1000);
+    const res = await request("/v1/releases/latest", { method: "HEAD" });
+    expect(res.status).toBe(503);
+    expect(res.headers.get("Retry-After")).toBe("60");
+    expect(await res.text()).toBe("");
+    expect(points).toHaveLength(0);
   });
 });
 
@@ -235,7 +334,7 @@ describe("the check's fields as headers", () => {
       API_STATE: {
         getByName: () => ({
           identify: () => new Promise<string>((resolve) => setTimeout(() => resolve("hash"), 50)),
-          latest: async () => RELEASE_BODY,
+          latest: async () => ({ body: RELEASE_BODY, fetchedAt: Date.now() }),
         }),
       },
     } as unknown as Cloudflare.Env;
@@ -257,7 +356,7 @@ describe("the check's fields as headers", () => {
   it("still answers when the salt can't be read", async () => {
     const broken = {
       ...testEnv,
-      API_STATE: { getByName: () => ({ identify: async () => { throw new Error("do down"); }, latest: async () => RELEASE_BODY }) },
+      API_STATE: { getByName: () => ({ identify: async () => { throw new Error("do down"); }, latest: async () => ({ body: RELEASE_BODY, fetchedAt: Date.now() }) }) },
     } as unknown as Cloudflare.Env;
     const res = await run(new Request(`${BASE}/v1/releases/latest`, { headers: checkHeaders }), broken);
     expect(res.status).toBe(200);

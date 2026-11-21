@@ -1,4 +1,4 @@
-import type { ApiState } from "./state";
+import { MAX_STALE_AGE_MS, RETRY_AFTER_FAILURE_MS, type ApiState } from "./state";
 
 export { ApiState } from "./state";
 
@@ -6,6 +6,7 @@ declare global {
   namespace Cloudflare {
     interface Env {
       RELEASE_CHECKS: AnalyticsEngineDataset;
+      UPSTREAM_CHECKS: AnalyticsEngineDataset;
       API_STATE: DurableObjectNamespace<ApiState>;
       // Optional fine-grained token with read-only access to public repositories, set with `wrangler secret put`.
       GITHUB_TOKEN?: string;
@@ -63,9 +64,23 @@ const latestRelease = async (request: Request, env: Cloudflare.Env, ctx: Executi
   if (request.method === "GET") ctx.waitUntil(record(request, env));
   const release = await env.API_STATE.getByName("api").latest();
   if (release === null) return text("Release unavailable", 502);
-  return new Response(request.method === "HEAD" ? null : release, {
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" },
-  });
+  // Counted from GitHub's last good answer, so a copy kept through an outage shows its real age.
+  const age = Date.now() - release.fetchedAt;
+  const headers = {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store",
+    "Access-Control-Allow-Origin": "*",
+    "X-Sonor-Release-Age": String(Math.floor(age / 1000)),
+  };
+  // Too old to serve: a 503 sends the app to GitHub directly, which is where a stale copy gets corrected.
+  if (age > MAX_STALE_AGE_MS) {
+    const body = JSON.stringify({ error: "Release too old to serve" });
+    return new Response(request.method === "HEAD" ? null : body, {
+      status: 503,
+      headers: { ...headers, "Retry-After": String(Math.ceil(RETRY_AFTER_FAILURE_MS / 1000)) },
+    });
+  }
+  return new Response(request.method === "HEAD" ? null : release.body, { headers });
 };
 
 export default {
