@@ -32,21 +32,30 @@ const text = (body: string | null, status: number, headers: HeadersInit = {}) =>
 const clean = (value: string | null, missing = "unknown") =>
   (value ?? "").replace(/[^A-Za-z0-9._:+-]/g, "").slice(0, MAX_VALUE_LENGTH) || missing;
 
-const field = (request: Request, name: string, missing = "unknown") =>
+const field = (request: Request, name: string, missing = "") =>
   clean(request.headers.get(`X-Sonor-${name}`), missing);
+
+// Only release builds count: dev names and hand-made versions like 0.0.0-test aren't checks by a real app.
+const RELEASE_VERSION = /^\d+\.\d+\.\d+(-beta\.\d+)?$/;
 
 // Recording must never fail the release check, so errors are dropped on purpose.
 const record = async (request: Request, env: Cloudflare.Env) => {
+  // A real app check always sends a release version, os, arch and platform; anything else (crawlers, curl) isn't counted.
+  const version = field(request, "Version");
+  const os = field(request, "OS");
+  const arch = field(request, "Arch");
+  const platform = field(request, "Platform");
+  if (!RELEASE_VERSION.test(version) || !os || !arch || !platform) return;
   try {
     const hash = await env.API_STATE.getByName("api").identify(request.headers.get("CF-Connecting-IP") ?? "");
     env.RELEASE_CHECKS.writeDataPoint({
       indexes: [hash],
       blobs: [
-        field(request, "Version"),
-        field(request, "Commit"),
-        field(request, "OS"),
-        field(request, "Arch"),
-        field(request, "Platform"),
+        version,
+        field(request, "Commit", "unknown"),
+        os,
+        arch,
+        platform,
         field(request, "Lang", ""),
         field(request, "Expires", ""),
       ],
