@@ -8,14 +8,18 @@ export default function Page() {
       <p className="updated">Last updated: 22 November 2026</p>
 
       <p>
-        Sonor is a music player for servers you choose. It has no accounts, no ads, and no analytics, tracking or
-        crash-reporting tools. This page says what leaves your device, where it goes and why.
+        Sonor is a music player for servers you choose. It has no accounts and no ads, and the app carries no
+        third-party analytics, tracking or crash-reporting tools. This page says what leaves your device, where it goes
+        and why.
       </p>
 
       <h2>In short</h2>
       <ul>
         <li>Your library, passwords and listening stay between your device and your own music server.</li>
-        <li>The only thing that reaches us is the update check, and you can turn it off.</li>
+        <li>
+          From the app, only the update check reaches us. We count those checks in total, and you can turn them off.
+        </li>
+        <li>The website counts visits in total through Cloudflare, without cookies or anything that runs in your browser.</li>
         <li>A few optional features contact other services straight from your device. Each one has a switch.</li>
       </ul>
 
@@ -29,7 +33,7 @@ export default function Page() {
       <p>
         The desktop (macOS, Windows, Linux) and Android builds we publish ask <code>api.sonor.fi</code> for the
         latest release a minute after they start, then once a day while they run, and when you press Check. iPhone
-        builds don't check, because TestFlight handles their updates. Builds we didn't publish don't check either.
+        builds don't check, because TestFlight handles their updates.
       </p>
       <p>Each check sends:</p>
       <ul>
@@ -100,8 +104,8 @@ export default function Page() {
 
       <h2>Other Sonor devices on your network</h2>
       <p>
-        If you turn on Settings › Listening › Show other sessions on this network (off by default), Sonor announces
-        itself on your local network so your other devices can find it. The announcement carries only a random-looking
+        Sonor only looks for your other devices, and announces itself to them on your local network, once you choose
+        to use Devices; your system may ask for permission to use the local network first. The announcement carries only a random-looking
         ID, a group code and a format number, never your name or the device's name. Every message between your devices
         is encrypted and signed with a key each device works out from your server address, username and saved
         password, so only your own sessions can read them. Nothing of this leaves your local network or reaches us.
@@ -128,16 +132,20 @@ export default function Page() {
 
       <h2>This website</h2>
       <p>
-        sonor.fi runs on Cloudflare. It sets no cookies, has no analytics, and loads no outside fonts, scripts or
-        images. To suggest the right download, it reads the system details your browser sends with each visit, and
+        sonor.fi runs on Cloudflare. It sets no cookies, runs no tracking scripts, and loads no outside fonts, scripts
+        or images. To suggest the right download, it reads the system details your browser sends with each visit, and
         keeps none of them. The release list comes from GitHub through our server, not from your browser. Cloudflare
-        sees your IP address to deliver the page and protect it from attacks, under{" "}
-        <a href="https://www.cloudflare.com/privacypolicy/">its own privacy policy</a>.
+        sees your IP address to deliver the page and protect it from attacks, and keeps its standard traffic
+        statistics for us, such as the number of visits and the countries they come from, which we only see in total.
+        That is handled under <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.
       </p>
 
       <h2>Who else handles the data</h2>
       <ul>
-        <li>Cloudflare runs this website and api.sonor.fi for us, and stores the update check records.</li>
+        <li>
+          Cloudflare runs this website and api.sonor.fi for us, stores the update check records and keeps the
+          website's traffic statistics.
+        </li>
         <li>
           GitHub, Apple, LRCLIB, the image services your server links to, and your server's operator receive data from
           your device directly, as described above, under their own terms. We don't share or sell anything.
