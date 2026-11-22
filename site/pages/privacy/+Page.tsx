@@ -1,5 +1,5 @@
 // The privacy policy. Every claim here is checked against the app and Worker code; change them together.
-const CONTACT = "elboletaire@underave.net";
+const CONTACT = "privacy@sonor.fi";
 
 export default function Page() {
   return (

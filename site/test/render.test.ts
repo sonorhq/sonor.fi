@@ -158,7 +158,7 @@ describe("the rendered pages", () => {
     for (const heading of ["Who we are", "The update check", "How long we keep it", "Your rights", "Children", "Changes", "Contact"]) {
       expect(html).toContain(`<h2>${heading}</h2>`);
     }
-    expect(html).toContain('href="mailto:elboletaire@underave.net"');
+    expect(html).toContain('href="mailto:privacy@sonor.fi"');
     expect(html).not.toMatch(/<meta name="description" content="[^"]*coming soon/i);
   });
 
