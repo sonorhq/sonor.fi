@@ -19,7 +19,7 @@ A copy GitHub stops answering for is served for up to an hour, then not at all, 
 | `X-Sonor-Lang` | the app's UI language setting, when there is one |
 | `X-Sonor-Expires` | the beta's expiry date, when there is one |
 
-Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40, and becomes `unknown` when empty (`X-Sonor-Lang` and `X-Sonor-Expires`: `""`).
+Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40. An empty `X-Sonor-Commit` records `unknown`, an empty `X-Sonor-Lang` or `X-Sonor-Expires` records `""`.
 
 - `200` with the release as `application/json`. The release is the newest non-draft one, pre-releases included, by publish date.
 - `503` with `Retry-After: 60` and a JSON error when the copy is more than an hour old, counted from GitHub's last good answer. The apps fall back to GitHub directly, which corrects a stale copy.
@@ -31,7 +31,11 @@ Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40, and becomes `
 
 ## What is recorded
 
-One Analytics Engine data point per `GET /v1/releases/latest` (dataset `sonor_release_checks`). It's written after the response is sent, so recording never delays the check.
+One Analytics Engine data point per `GET /v1/releases/latest` that is a real app check (dataset `sonor_release_checks`). It's written after the response is sent, so recording never delays the check.
+
+A request counts only when `X-Sonor-Version` is a release version (`1.2.3` or `1.2.3-beta.4`) and `X-Sonor-OS`, `X-Sonor-Arch` and `X-Sonor-Platform` are all present. Crawlers, curl and dev builds get the same response but aren't recorded.
+
+A request counts only when `X-Sonor-Version` is a release version (`1.2.3` or `1.2.3-beta.4`) and `X-Sonor-OS`, `X-Sonor-Arch` and `X-Sonor-Platform` are all present. Crawlers, curl and dev builds get the same response but aren't recorded.
 
 | Field | Value |
 | --- | --- |

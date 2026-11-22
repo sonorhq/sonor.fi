@@ -322,21 +322,55 @@ describe("the check's fields as headers", () => {
     });
   });
 
-  it("records 'unknown' for absent fields, and '' for absent lang and expiry", async () => {
-    await latest({ "CF-Connecting-IP": IP });
-    expect(points[0].blobs).toEqual(["unknown", "unknown", "unknown", "unknown", "unknown", "", ""]);
+  it("records 'unknown' for an absent commit, and '' for absent lang and expiry", async () => {
+    const { "X-Sonor-Commit": _c, "X-Sonor-Lang": _l, "X-Sonor-Expires": _e, ...mandatory } = checkHeaders;
+    await latest(mandatory);
+    expect(points[0].blobs).toEqual(["1.0.0-beta.3", "unknown", "linux", "x86_64", "desktop", "", ""]);
+  });
+
+  it("records a valid release version without a beta suffix", async () => {
+    await latest({ ...checkHeaders, "X-Sonor-Version": "1.2.3" });
+    expect(points[0].blobs?.[0]).toBe("1.2.3");
+  });
+
+  it("answers the same, and records nothing, without any X-Sonor headers", async () => {
+    const withHeaders = await latest();
+    const bare = await latest({ "CF-Connecting-IP": IP, "User-Agent": "curl/8" });
+    expect(points).toHaveLength(1);
+    expect(bare.status).toBe(withHeaders.status);
+    expect(await bare.text()).toBe(await withHeaders.text());
+    expect(bare.headers.get("Content-Type")).toBe(withHeaders.headers.get("Content-Type"));
+  });
+
+  it.each(["0.0.0-test", "dev", "1.0.0-beta", "v1.0.0", "1.0.0-beta.3-dev", "1.0.0 beta"])(
+    "records nothing for the version %j, and answers normally",
+    async (version) => {
+      const res = await latest({ ...checkHeaders, "X-Sonor-Version": version });
+      expect(res.status).toBe(200);
+      expect(await res.text()).toBe(RELEASE_BODY);
+      expect(points).toHaveLength(0);
+    },
+  );
+
+  it.each(["OS", "Arch", "Platform"])("records nothing when X-Sonor-%s is missing", async (name) => {
+    const rest: Record<string, string> = { ...checkHeaders };
+    delete rest[`X-Sonor-${name}`];
+    const res = await latest(rest);
+    expect(res.status).toBe(200);
+    expect(points).toHaveLength(0);
   });
 
   it("clamps each value to [A-Za-z0-9._:+-] and 40 characters", async () => {
     await latest({
       ...checkHeaders,
-      "X-Sonor-Version": "a".repeat(50),
-      "X-Sonor-Commit": "1.2 3/x<>",
+      "X-Sonor-Version": "1.0.0 /",
+      "X-Sonor-Commit": "1.2 3/x<>" + "a".repeat(50),
       "X-Sonor-OS": "<script>",
       "X-Sonor-Lang": "pt BR/x",
       "X-Sonor-Expires": "2027:02+16",
     });
-    expect(points[0].blobs?.slice(0, 2)).toEqual(["a".repeat(40), "1.23x"]);
+    expect(points[0].blobs?.[0]).toBe("1.0.0");
+    expect(points[0].blobs?.[1]).toBe(("1.23x" + "a".repeat(50)).slice(0, 40));
     expect(points[0].blobs?.[2]).toBe("script");
     expect(points[0].blobs?.[5]).toBe("ptBRx");
     expect(points[0].blobs?.[6]).toBe("2027:02+16");
