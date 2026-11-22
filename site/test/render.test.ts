@@ -151,6 +151,17 @@ describe("the rendered pages", () => {
     expect(html).not.toContain('"@type":"SoftwareApplication"');
   });
 
+  it("renders the full privacy policy, not a placeholder", async () => {
+    const { html } = await render("/privacy");
+    expect(html).not.toMatch(/coming soon/i);
+    expect(html).toContain("Last updated: 22 November 2026");
+    for (const heading of ["Who we are", "The update check", "How long we keep it", "Your rights", "Children", "Changes", "Contact"]) {
+      expect(html).toContain(`<h2>${heading}</h2>`);
+    }
+    expect(html).toContain('href="mailto:elboletaire@underave.net"');
+    expect(html).not.toMatch(/<meta name="description" content="[^"]*coming soon/i);
+  });
+
   it("renders the 404 page with a 404 status and no index", async () => {
     const { status, html } = await render("/does-not-exist");
     expect(status).toBe(404);
