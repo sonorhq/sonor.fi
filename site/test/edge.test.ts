@@ -41,6 +41,17 @@ describe("redirects", () => {
     expect(res.headers.get("Location")).toBe("https://sonor.fi/?utm=1");
   });
 
+  it("sends /policy to /privacy, keeping the query", async () => {
+    const { get, assets, render } = setup();
+    for (const path of ["/policy", "/policy/"]) {
+      const res = await get(`https://sonor.fi${path}?ref=x`);
+      expect(res.status).toBe(301);
+      expect(res.headers.get("Location")).toBe("https://sonor.fi/privacy?ref=x");
+    }
+    expect(assets).not.toHaveBeenCalled();
+    expect(render).not.toHaveBeenCalled();
+  });
+
   it("sends http www in two hops: https first, then the apex", async () => {
     const { get } = setup();
     const first = await get("http://www.sonor.fi/about");
