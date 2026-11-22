@@ -130,6 +130,8 @@ describe("the rendered pages", () => {
     const { html } = await render("/");
     expect(html).toContain("<h2>Made for listening</h2>");
     expect(html).toContain("<h3>Offline downloads</h3>");
+    expect(html).toContain("<h3>Play on your other devices</h3>");
+    expect(html).not.toContain("/screenshots/features/devices.webp");
     expect(html).toContain("<h2>With an Octo server</h2>");
     expect(html).toContain("Everything here needs an Octo server");
     expect(html).toContain("<h3>Add music to your library</h3>");

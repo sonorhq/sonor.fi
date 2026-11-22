@@ -45,6 +45,15 @@ describe("the feature copy", () => {
     }
   });
 
+  it("has the devices feature, with its picture not ready yet", () => {
+    const devices = CORE_FEATURES.find((feature) => feature.id === "devices");
+    expect(devices?.title).toBe("Play on your other devices");
+    expect(devices?.image?.ready).toBe(false);
+    expect(readyImage(devices!)).toBeUndefined();
+    expect(COMING).toContain("Devices on Android");
+    expect(COMING).toContain("Casting to AirPlay, Chromecast and DLNA");
+  });
+
   it("shows six accent icons", () => {
     expect(ACCENT_ICONS).toHaveLength(6);
   });
