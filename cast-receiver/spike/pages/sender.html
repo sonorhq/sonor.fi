@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Spike sender</title>
+<button id="cast">Cast</button>
+<script src="/presentation-polyfill.js"></script>
+<script src="/cast-sender-emulator.js" data-receiver-url="http://localhost:4180/receiver.html"></script>
+<script>
+  window.__onGCastApiAvailable = (ok) => {
+    if (!ok) return
+    cast.framework.CastContext.getInstance().setOptions({
+      receiverApplicationId: 'ABCD1234',
+      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    })
+    window.castReady = true
+  }
+  // Messages the receiver sent back on the custom namespace.
+  window.fromReceiver = []
+  document.getElementById('cast').onclick = async () => {
+    const context = cast.framework.CastContext.getInstance()
+    await context.requestSession()
+    context
+      .getCurrentSession()
+      .addMessageListener('urn:x-cast:fi.sonor', (ns, message) => window.fromReceiver.push({ ns, message }))
+  }
+</script>
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
