@@ -63,7 +63,7 @@ export default function Page() {
       </p>
       <p>
         If <code>api.sonor.fi</code> doesn't answer, desktop and Android builds ask GitHub's public API for the releases instead, without
-        any of the values above. When you press Update, the new version is downloaded from GitHub. GitHub sees your IP
+        any of the values above. On those builds, when you press Update, the new version is downloaded from GitHub. GitHub sees your IP
         address, as it does for any visitor.
       </p>
 
