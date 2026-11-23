@@ -1,15 +1,16 @@
-// CAF wiring only; the channel logic is in protocol.ts.
+// CAF wiring only; the channel logic is in protocol.ts, the drawing in screen.ts.
 import "./style.css";
-import { NAMESPACE, activeLine, handleMessage, initialState, lyricsFor, type State } from "./protocol";
+import { NAMESPACE, handleMessage, initialState, lyricsFor, type State } from "./protocol";
+import { renderView, tick } from "./screen";
+import { screenMode, trackOf } from "./view";
 
 const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
+// Sonor draws the whole screen, so CAF plays into a plain audio element and draws no UI of its own.
+playerManager.setMediaElement(document.getElementById("player") as HTMLAudioElement);
 
 let state: State = initialState();
 let playingKey: string | null = null;
-let activeIndex = -1;
-
-const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
 const keyOf = (media: { customData?: unknown } | null | undefined): string | null => {
   const sonor = (media?.customData as { sonor?: { v?: number; key?: unknown } } | undefined)?.sonor;
@@ -17,46 +18,18 @@ const keyOf = (media: { customData?: unknown } | null | undefined): string | nul
 };
 
 const render = (): void => {
+  const media = playerManager.getMediaInformation();
   const lyrics = lyricsFor(state, playingKey ?? state.queue?.current ?? null);
-  const list = el("lyrics");
-  const note = el("lyrics-note");
-  list.replaceChildren();
-  activeIndex = -1;
-  note.textContent = "";
-  if (lyrics && !lyrics.none) {
-    for (const line of lyrics.lines) {
-      const li = document.createElement("li");
-      li.textContent = typeof line === "string" ? line : line[1];
-      list.append(li);
-    }
-    if (lyrics.truncated) note.textContent = "…";
-  }
-  const next = el("next");
-  next.replaceChildren();
-  for (const item of state.queue?.next ?? []) {
-    const li = document.createElement("li");
-    if (item.image) {
-      const img = document.createElement("img");
-      img.src = item.image;
-      img.alt = "";
-      li.append(img);
-    }
-    li.append(`${item.title} – ${item.artist}`);
-    next.append(li);
-  }
+  renderView({
+    mode: screenMode(media !== null, lyrics),
+    track: trackOf(media),
+    lyrics,
+    next: state.queue?.next ?? null,
+  });
+  update();
 };
 
-const highlight = (): void => {
-  const lyrics = lyricsFor(state, playingKey ?? state.queue?.current ?? null);
-  if (!lyrics || lyrics.none || !lyrics.synced) return;
-  const active = activeLine(lyrics.lines, playerManager.getCurrentTimeSec() * 1000);
-  if (active === activeIndex) return;
-  activeIndex = active;
-  el("lyrics").querySelectorAll("li").forEach((li, i) => {
-    li.classList.toggle("active", i === active);
-    if (i === active) li.scrollIntoView({ block: "center", behavior: "smooth" });
-  });
-};
+const update = (): void => tick(playerManager.getCurrentTimeSec(), playerManager.getDurationSec());
 
 // Registered before start(), or the first messages are lost.
 context.addCustomMessageListener(NAMESPACE, (event) => {
@@ -67,12 +40,9 @@ context.addCustomMessageListener(NAMESPACE, (event) => {
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () => {
-  const key = keyOf(playerManager.getMediaInformation());
-  if (key !== playingKey) {
-    playingKey = key;
-    render();
-  }
+  playingKey = keyOf(playerManager.getMediaInformation());
+  render();
 });
 
-setInterval(highlight, 250);
+setInterval(update, 200);
 context.start();

@@ -84,7 +84,11 @@ describe("lyrics", () => {
     expect(lyrics.synced).toBe(true);
     expect(lyrics.source).toBe("lrclib");
     expect(lyrics.lines[1]).toEqual([16500, "Second line"]);
-    expect(lyrics.words?.[0]?.[1]).toEqual([13000, 14000, "line"]);
+    // The words of a line concatenate to it: the gap between two cues is a word of its own.
+    expect(lyrics.words?.[0]?.map((w) => w[2]).join("")).toBe("First line");
+    expect(lyrics.words?.[0]?.[2]).toEqual([13000, 14000, "line"]);
+    // A line without timing has an empty word list.
+    expect(lyrics.words?.[2]).toEqual([]);
     expect(lyrics.truncated).toBe(false);
   });
   it("stores plain lyrics", () => {

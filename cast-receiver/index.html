@@ -8,11 +8,54 @@
     <script type="module" src="/src/main.ts"></script>
   </head>
   <body>
-    <cast-media-player></cast-media-player>
-    <aside id="sonor">
-      <ol id="lyrics" aria-label="Lyrics"></ol>
-      <p id="lyrics-note"></p>
-      <ol id="next" aria-label="Up next"></ol>
-    </aside>
+    <audio id="player" hidden></audio>
+    <main id="screen" data-mode="idle">
+      <section id="idle">
+        <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+          <rect width="100" height="100" rx="22.4" fill="#291006" />
+          <g transform="translate(-0.73,-0.73) scale(1.01452)" fill="#f4743b">
+            <rect x="21.41" y="36.65" width="8.17" height="26.7" rx="4.08" />
+            <rect x="33.66" y="45.15" width="8.17" height="26.7" rx="4.08" />
+            <rect x="45.91" y="36.65" width="8.17" height="26.7" rx="4.08" />
+            <rect x="58.16" y="28.15" width="8.17" height="26.7" rx="4.08" />
+            <rect x="70.42" y="36.65" width="8.17" height="26.7" rx="4.08" />
+          </g>
+        </svg>
+        <p class="wordmark">sonor</p>
+        <p class="ready">Ready to play</p>
+      </section>
+      <section id="playing">
+        <div class="side">
+          <figure class="cover">
+            <svg class="fallback" viewBox="0 0 100 100" aria-hidden="true">
+              <g transform="translate(-0.73,-0.73) scale(1.01452)" fill="#f4743b">
+                <rect x="21.41" y="36.65" width="8.17" height="26.7" rx="4.08" />
+                <rect x="33.66" y="45.15" width="8.17" height="26.7" rx="4.08" />
+                <rect x="45.91" y="36.65" width="8.17" height="26.7" rx="4.08" />
+                <rect x="58.16" y="28.15" width="8.17" height="26.7" rx="4.08" />
+                <rect x="70.42" y="36.65" width="8.17" height="26.7" rx="4.08" />
+              </g>
+            </svg>
+            <img id="cover" alt="" hidden />
+          </figure>
+          <div class="info">
+            <p id="title" class="title"></p>
+            <p id="artist" class="artist"></p>
+            <p id="album" class="album"></p>
+            <div class="progress">
+              <div class="bar"><i id="fill"></i></div>
+              <div class="times"><span id="now">0:00</span><span id="total">0:00</span></div>
+            </div>
+            <section id="next-box" class="next" hidden>
+              <h2>Up next</h2>
+              <ol id="next"></ol>
+            </section>
+          </div>
+        </div>
+        <div id="lyrics" class="lyrics" aria-label="Lyrics">
+          <div id="track" class="track"></div>
+        </div>
+      </section>
+    </main>
   </body>
 </html>

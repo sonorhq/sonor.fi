@@ -88,7 +88,7 @@ None (the sender looked and there are no lyrics, so the receiver can stop waitin
 | `synced` | `true`: `lines` are `[startMs, "text"]`. `false`: `lines` are `"text"`. |
 | `source` | Where the lyrics came from, a short lower-case label such as `lrclib`. |
 | `lines` | The lines, in order. Empty text is allowed (an instrumental gap). |
-| `words` | Optional, synced only. One entry per line, same order and length as `lines`; each entry is a list of `[startMs, endMs, "word"]`. Used for word-by-word highlighting. |
+| `words` | Optional, synced only. One entry per line, same order and length as `lines`; each entry is a list of `[startMs, endMs, "word"]`. The words of a line concatenate exactly to its text: the spaces and punctuation between cues are sent as gap words of their own, so the receiver draws them with no separator. A line without timing has an empty list `[]`. Used for word-by-word highlighting. |
 | `truncated` | `true` when lines were cut from the end to fit the size limit. |
 
 Size rule, applied by the sender in this order until the message fits in 60,000 bytes:
@@ -108,6 +108,13 @@ Drop everything the receiver shows for the queue and lyrics (for example when th
 ```json
 {"type":"clear","v":1}
 ```
+
+### Cover art
+
+The cover on the TV is the media metadata image (`metadata.images[0].url`), not part of this channel.
+Sonor serves it from its LAN relay over plain `http:` as well as `https:`, so the receiver accepts both
+and nothing else: the URL is parsed, and `javascript:`, `data:` and any other scheme are ignored. The
+`next[].image` of `queue` stays https only.
 
 ## Receiver to Sonor
 
