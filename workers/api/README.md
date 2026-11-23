@@ -29,6 +29,8 @@ Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40. An empty `X-S
 
 `GET /cast/receiver.css` (and the images it references, `/cast/background.png`, `splash.png`, `logo.png`, `watermark.png`) is Sonor's skin for the Google Cast Styled Media Receiver; its Skin URL in the Cast console is `https://api.sonor.fi/cast/receiver.css`. The files live in `public/cast/` and are served by the Worker with `Access-Control-Allow-Origin: *` and `Cache-Control: public, max-age=3600`. Nothing is recorded. Other `/cast/` paths get `404`.
 
+`GET /cast/receiver/` (production) and `/cast/receiver-next/` (the same build, for trying changes) serve Sonor's Custom Web Receiver app: `index.html` at the directory, plus `main.js` and `main.css`, and nothing else; every other path under them is `404`. The app is built from [`cast-receiver/`](../../cast-receiver) and copied into `public/cast/` (git-ignored) by `scripts/copy-receiver.mjs`, which `pnpm --filter sonor-api build`, `test` and `deploy` run. Caching is `public, max-age=300` for `receiver` and `no-cache` for `receiver-next`. Nothing is recorded.
+
 `GET /v1/health` answers `200` with `ok`, without counting. It's for uptime checks.
 
 ## What is recorded

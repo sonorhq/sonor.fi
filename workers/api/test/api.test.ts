@@ -561,6 +561,49 @@ describe("other requests", () => {
     expect(points).toHaveLength(0);
   });
 
+  it("serves the Cast receiver app at /cast/receiver/ and /cast/receiver-next/", async () => {
+    const expected: [string, string, string][] = [
+      ["", "text/html; charset=utf-8", "<cast-media-player"],
+      ["main.js", "text/javascript; charset=utf-8", "urn:x-cast:fi.sonor"],
+      ["main.css", "text/css; charset=utf-8", "#lyrics"],
+    ];
+    for (const [dir, cache] of [["receiver", "public, max-age=300"], ["receiver-next", "no-cache"]] as const) {
+      for (const [file, type, body] of expected) {
+        const res = await request(`/cast/${dir}/${file}`);
+        expect(res.status).toBe(200);
+        expect(res.headers.get("Content-Type")).toBe(type);
+        expect(res.headers.get("Cache-Control")).toBe(cache);
+        expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+        expect(await res.text()).toContain(body);
+      }
+    }
+    const head = await request("/cast/receiver/main.js", { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect((await request("/cast/receiver/", { method: "POST" })).status).toBe(405);
+    expect(points).toHaveLength(0);
+  });
+
+  it("404s everything else under the Cast receiver paths", async () => {
+    for (const path of [
+      "/cast/receiver",
+      "/cast/receiver/index.html",
+      "/cast/receiver/main.js.map",
+      "/cast/receiver/main.js/x",
+      "/cast/receiver/../receiver.css/x",
+      "/cast/receiver/__proto__",
+      "/cast/receiver/constructor",
+      "/cast/receiver-next/nope",
+      "/cast/receiver-next/index.html",
+      "/cast/receiver-old/",
+      "/cast/__proto__/",
+      "/cast/constructor/main.js",
+    ]) {
+      expect((await request(path)).status).toBe(404);
+      expect((await request(path, { method: "OPTIONS" })).status).toBe(404);
+    }
+  });
+
   it("404s unknown Cast paths", async () => {
     for (const path of ["/cast", "/cast/", "/cast/nope.png", "/cast/receiver.css/x", "/cast/preview.html"]) {
       expect((await request(path)).status).toBe(404);

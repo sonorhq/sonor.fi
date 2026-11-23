@@ -38,7 +38,9 @@ jobs:
       # The API stays off until the repo variable DEPLOY_API is "true".
       - name: Deploy the API Worker (api.sonor.fi)
         if: vars.DEPLOY_API == 'true'
-        run: pnpm --filter sonor-api exec wrangler deploy
+        run: |
+          pnpm --filter "sonor-api..." build
+          pnpm --filter sonor-api exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
