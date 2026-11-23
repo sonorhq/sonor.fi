@@ -51,7 +51,8 @@ describe("the feature copy", () => {
     expect(devices?.image?.ready).toBe(true);
     expect(readyImage(devices!)?.src).toBe("/screenshots/features/devices.webp");
     expect(devices?.text).toContain("Jellyfin and Emby");
-    expect(COMING).toContain("Devices on Android");
+    expect(devices?.where).toContain("Android");
+    expect(COMING).not.toContain("Devices on Android");
     expect(COMING).toContain("Casting to AirPlay, Chromecast and DLNA");
   });
 
