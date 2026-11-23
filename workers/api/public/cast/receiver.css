@@ -1,9 +1,4 @@
-/*
- * Sonor skin for the Google Cast Styled Media Receiver.
- * Only the documented classes: .background .logo .splash .watermark .progressBar.
- * Images are relative to this file; host them next to it over HTTPS.
- * Palette: frontend/src/styles/tokens.css (accent #f4743b on near-black).
- */
+/* Sonor skin for the Google Cast Styled Media Receiver: documented classes only; images resolve next to this file. */
 .background {
   background-color: #000000;
   background-image: url('background.png');

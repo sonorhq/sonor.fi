@@ -103,9 +103,9 @@ const CAST_TYPES: Record<string, string> = {
 };
 
 const castAsset = async (request: Request, env: Cloudflare.Env, name: string): Promise<Response> => {
-  const type = CAST_TYPES[name];
-  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS_HEADERS, Allow: ALLOW } });
+  const type = Object.hasOwn(CAST_TYPES, name) ? CAST_TYPES[name] : undefined;
   if (!type) return text("Not found", 404);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS_HEADERS, Allow: ALLOW } });
   if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
   const asset = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
   if (!asset.ok) return text("Not found", 404);

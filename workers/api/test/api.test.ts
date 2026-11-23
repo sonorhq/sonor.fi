@@ -565,6 +565,10 @@ describe("other requests", () => {
     for (const path of ["/cast", "/cast/", "/cast/nope.png", "/cast/receiver.css/x", "/cast/preview.html"]) {
       expect((await request(path)).status).toBe(404);
     }
+    for (const path of ["/cast/nope.png", "/cast/__proto__", "/cast/constructor"]) {
+      expect((await request(path, { method: "OPTIONS" })).status).toBe(404);
+      expect((await request(path)).status).toBe(404);
+    }
   });
 
   it("404s everything else", async () => {
