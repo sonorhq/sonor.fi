@@ -1,13 +1,16 @@
 // DOM rendering for the receiver's screen. It shows what main.ts gives it; text only ever goes in as textContent.
 import { activeLine, type Lyrics, type NextItem, type WordTiming } from "./protocol";
-import { formatTime, plainOffset, progressFraction, sungWords, syncedOffset, type Mode } from "./view";
-
-export interface Track {
-  title: string;
-  artist: string;
-  album: string;
-  cover: string | null;
-}
+import {
+  formatTime,
+  lyricLines,
+  plainOffset,
+  progressFraction,
+  sungWords,
+  syncedOffset,
+  wordSegments,
+  type Mode,
+  type Track,
+} from "./view";
 
 export interface View {
   mode: Mode;
@@ -15,9 +18,6 @@ export interface View {
   lyrics: Lyrics | null;
   next: NextItem[] | null;
 }
-
-// The lyrics that have lines to show.
-type Shown = Exclude<Lyrics, { none: true }>;
 
 interface Row {
   el: HTMLElement;
@@ -50,6 +50,7 @@ const lyricsTrack = byId("track");
 let mode: Mode = "idle";
 let shownLyrics: Lyrics | null = null;
 let shownNext: NextItem[] | null | undefined;
+let shownLimit = 0;
 let rows: Row[] = [];
 let boxHeight = 0;
 let contentHeight = 0;
@@ -59,12 +60,22 @@ let sung = Number.NaN;
 // The first placement after new lyrics snaps instead of sliding from the previous track's position.
 let snap = false;
 
+// Fonts can load after the first layout of the lyrics; measure again once they are in.
+document.fonts.ready.then(() => {
+  if (rows.length === 0) return;
+  measure();
+  active = Number.NaN;
+  sung = Number.NaN;
+  snap = true;
+});
+
 export const renderView = (view: View): void => {
   mode = view.mode;
   screen.dataset.mode = view.mode;
   renderTrack(view.track);
   renderLyrics(view.mode === "synced" || view.mode === "plain" ? view.lyrics : null);
-  renderNext(view.next);
+  // The lyrics layouts leave room for two up-next items; the cover layout for three.
+  renderNext(view.next, view.mode === "none" ? 3 : 2);
 };
 
 /** Moves the progress bar and the lyrics to the media time; called on every render and on a timer. */
@@ -77,9 +88,9 @@ export const tick = (nowSec: number, durationSec: number): void => {
 };
 
 const renderTrack = (track: Track | null): void => {
-  titleEl.textContent = track?.title ?? "";
-  artistEl.textContent = track?.artist ?? "";
-  albumEl.textContent = track?.album ?? "";
+  setText(titleEl, track?.title ?? "");
+  setText(artistEl, track?.artist ?? "");
+  setText(albumEl, track?.album ?? "");
   const src = track?.cover ?? "";
   if ((cover.getAttribute("src") ?? "") !== src) {
     if (src) cover.src = src;
@@ -88,10 +99,11 @@ const renderTrack = (track: Track | null): void => {
   cover.hidden = !src;
 };
 
-const renderNext = (next: NextItem[] | null): void => {
-  if (next === shownNext) return;
+const renderNext = (next: NextItem[] | null, limit: number): void => {
+  if (next === shownNext && limit === shownLimit) return;
   shownNext = next;
-  const items = (next ?? []).slice(0, 3);
+  shownLimit = limit;
+  const items = (next ?? []).slice(0, limit);
   nextList.replaceChildren(...items.map(nextItem));
   nextBox.hidden = items.length === 0;
 };
@@ -118,34 +130,28 @@ const renderLyrics = (lyrics: Lyrics | null): void => {
   rows = [];
   lyricsTrack.replaceChildren();
   if (!lyrics || lyrics.none || lyrics.lines.length === 0) return;
-  rows = lyricRows(lyrics).map(({ text, words }) => {
+  rows = lyricLines(lyrics).map(({ text, words }) => {
     const line = el("p", "line");
-    if (words) {
-      words.forEach(([, , word], i) => {
-        if (i) line.append(" ");
-        line.append(el("span", "word", word));
-      });
-    } else {
-      line.textContent = text;
-    }
+    const segments = wordSegments(words);
+    if (segments) for (const segment of segments) line.append(el("span", "word", segment));
+    else line.textContent = text;
     return { el: line, words, top: 0, height: 0 };
   });
   lyricsTrack.append(...rows.map((row) => row.el));
   if (lyrics.truncated) lyricsTrack.append(el("p", "line more", "…"));
-  // Layout is read once per lyrics render; the scale on the current line does not change it.
-  boxHeight = lyricsBox.clientHeight;
-  contentHeight = lyricsTrack.offsetHeight;
-  rows.forEach((row) => {
-    row.top = row.el.offsetTop;
-    row.height = row.el.offsetHeight;
-  });
+  measure();
   snap = true;
 };
 
-const lyricRows = (lyrics: Shown): { text: string; words: WordTiming[] | null }[] =>
-  lyrics.synced
-    ? lyrics.lines.map(([, text], i) => ({ text, words: lyrics.words?.[i] ?? null }))
-    : lyrics.lines.map((text) => ({ text, words: null }));
+// Layout is read once per lyrics render; the scale on the current line does not change it.
+const measure = (): void => {
+  boxHeight = lyricsBox.clientHeight;
+  contentHeight = lyricsTrack.offsetHeight;
+  for (const row of rows) {
+    row.top = row.el.offsetTop;
+    row.height = row.el.offsetHeight;
+  }
+};
 
 const paintProgress = (nowSec: number, durationSec: number): void => {
   fill.style.transform = `scaleX(${progressFraction(nowSec, durationSec)})`;

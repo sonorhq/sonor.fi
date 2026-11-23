@@ -563,7 +563,7 @@ describe("other requests", () => {
 
   it("serves the Cast receiver app at /cast/receiver/ and /cast/receiver-next/", async () => {
     const expected: [string, string, string][] = [
-      ["", "text/html; charset=utf-8", "<cast-media-player"],
+      ["", "text/html; charset=utf-8", "<audio id=\"player\""],
       ["main.js", "text/javascript; charset=utf-8", "urn:x-cast:fi.sonor"],
       ["main.css", "text/css; charset=utf-8", ".lyrics"],
     ];
@@ -580,6 +580,7 @@ describe("other requests", () => {
         if (dir === "receiver-next" && file === "") {
           expect(csp).toContain("default-src 'self'");
           expect(csp).toContain("script-src 'self' https://www.gstatic.com https://ajax.googleapis.com");
+          expect(csp).toContain("img-src https: http: data: blob:");
           expect(csp).toContain("object-src 'none'");
           expect(csp).toContain("base-uri 'none'");
         } else {

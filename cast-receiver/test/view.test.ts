@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { Lyrics } from "../src/protocol";
-import { ANCHOR, formatTime, plainOffset, progressFraction, screenMode, sungWords, syncedOffset } from "../src/view";
+import {
+  ANCHOR,
+  coverUrl,
+  formatTime,
+  lyricLines,
+  plainOffset,
+  progressFraction,
+  screenMode,
+  sungWords,
+  syncedOffset,
+  trackOf,
+  wordSegments,
+} from "../src/view";
 
 const synced: Lyrics = { key: "K1", synced: true, source: "lrclib", lines: [[0, "a"]], truncated: false };
 const plain: Lyrics = { key: "K1", synced: false, source: "lrclib", lines: ["a"], truncated: false };
@@ -97,5 +109,117 @@ describe("formatTime", () => {
     expect(formatTime(Number.NaN)).toBe("0:00");
     expect(formatTime(Number.POSITIVE_INFINITY)).toBe("0:00");
     expect(formatTime(-5)).toBe("0:00");
+  });
+});
+
+describe("wordSegments", () => {
+  it("concatenates to the line, gap words included (punctuation)", () => {
+    const words: [number, number, string][] = [
+      [0, 500, "Hello"],
+      [500, 500, ", "],
+      [500, 900, "world"],
+      [900, 900, "!"],
+    ];
+    expect(wordSegments(words)?.join("")).toBe("Hello, world!");
+  });
+  it("keeps syllables as they come, with no separator", () => {
+    expect(wordSegments([[0, 100, "Hel"], [100, 200, "lo"]])?.join("")).toBe("Hello");
+  });
+  it("splits CJK text, which has no spaces", () => {
+    expect(wordSegments([[0, 100, "日本"], [100, 200, "語"]])?.join("")).toBe("日本語");
+  });
+  it("is null for a line without timing", () => {
+    expect(wordSegments([])).toBeNull();
+    expect(wordSegments(null)).toBeNull();
+    expect(wordSegments(undefined)).toBeNull();
+  });
+});
+
+describe("lyricLines", () => {
+  it("draws a mixed lyric: timed lines keep their words, untimed lines fall back to their text", () => {
+    const lyrics: Lyrics = {
+      key: "K1",
+      synced: true,
+      source: "lrclib",
+      lines: [
+        [0, "Timed line"],
+        [1000, "Untimed line"],
+        [2000, ""],
+      ],
+      words: [[[0, 500, "Timed"], [500, 500, " "], [500, 1000, "line"]], [], []],
+      truncated: false,
+    };
+    const rows = lyricLines(lyrics);
+    expect(rows[0]).toEqual({ text: "Timed line", words: [[0, 500, "Timed"], [500, 500, " "], [500, 1000, "line"]] });
+    expect(rows[1]).toEqual({ text: "Untimed line", words: null });
+    expect(rows[2]).toEqual({ text: "", words: null });
+  });
+  it("gives plain lines no words", () => {
+    const lyrics: Lyrics = { key: "K1", synced: false, source: "lrclib", lines: ["a", "b"], truncated: false };
+    expect(lyricLines(lyrics)).toEqual([
+      { text: "a", words: null },
+      { text: "b", words: null },
+    ]);
+  });
+});
+
+describe("coverUrl", () => {
+  it("keeps http and https URLs", () => {
+    expect(coverUrl("https://cdn.example.org/cover.jpg")).toBe("https://cdn.example.org/cover.jpg");
+    expect(coverUrl("http://192.168.1.20:4533/rest/getCoverArt?id=al-1&size=600")).toBe(
+      "http://192.168.1.20:4533/rest/getCoverArt?id=al-1&size=600",
+    );
+  });
+  it("rejects every other scheme, and anything that is not a URL", () => {
+    for (const bad of [
+      "javascript:alert(1)",
+      "data:image/svg+xml;base64,PHN2Zz4=",
+      "file:///etc/passwd",
+      "blob:https://x.org/1",
+      "ftp://example.org/a.jpg",
+      "not a url",
+      "",
+    ]) {
+      expect(coverUrl(bad)).toBeNull();
+    }
+  });
+  it("rejects values that are not strings", () => {
+    expect(coverUrl(undefined)).toBeNull();
+    expect(coverUrl(42)).toBeNull();
+    expect(coverUrl({ href: "https://x.org" })).toBeNull();
+  });
+});
+
+describe("trackOf", () => {
+  it("reads the text fields and the first image", () => {
+    expect(
+      trackOf({
+        metadata: {
+          title: "Northern Lights",
+          artist: "The Harbour Club",
+          albumName: "Salt & Static",
+          images: [{ url: "http://192.168.1.20/cover.jpg" }, { url: "https://x.org/other.jpg" }],
+        },
+      }),
+    ).toEqual({
+      title: "Northern Lights",
+      artist: "The Harbour Club",
+      album: "Salt & Static",
+      cover: "http://192.168.1.20/cover.jpg",
+    });
+  });
+  it("ignores fields that are not strings, and a cover that is not http(s)", () => {
+    expect(trackOf({ metadata: { title: 7, artist: null, albumName: ["x"], images: [{ url: "javascript:1" }] } })).toEqual({
+      title: "",
+      artist: "",
+      album: "",
+      cover: null,
+    });
+    expect(trackOf({ metadata: { images: "https://x.org/a.jpg" } })?.cover).toBeNull();
+    expect(trackOf({ metadata: { images: [null, { url: "https://x.org/a.jpg" }] } })?.cover).toBeNull();
+  });
+  it("is no track without media, and an empty one without metadata", () => {
+    expect(trackOf(null)).toBeNull();
+    expect(trackOf({})).toEqual({ title: "", artist: "", album: "", cover: null });
   });
 });

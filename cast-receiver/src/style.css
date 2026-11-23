@@ -14,14 +14,18 @@
 [hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { color: var(--text); font-family: Roboto, system-ui, "Helvetica Neue", Arial, sans-serif; }
-cast-media-player { --progress-color: var(--accent); --playback-logo-image: none; }
 
-/* Covers the CAF player beneath it. */
+/* The whole screen; nothing else is drawn. */
 #screen {
   position: fixed;
   inset: 0;
   z-index: 10;
   overflow: hidden;
+  /* A touch display must not select text or pan the page under the screen. */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
   background:
     radial-gradient(90vw 80vh at 18% 115%, rgb(244 116 59 / .24), transparent 70%),
     radial-gradient(70vw 60vh at 92% -10%, rgb(244 116 59 / .1), transparent 70%),
@@ -60,7 +64,7 @@ cast-media-player { --progress-color: var(--accent); --playback-logo-image: none
 .cover {
   position: relative;
   flex: none;
-  width: min(26vw, 38vh);
+  width: min(26vw, 32vh);
   aspect-ratio: 1;
   margin: 0;
   border-radius: 2vh;
@@ -127,7 +131,7 @@ cast-media-player { --progress-color: var(--accent); --playback-logo-image: none
   position: absolute;
   top: 0;
   left: 0;
-  right: var(--safe-x);
+  right: calc(var(--safe-x) + 3vw);
   will-change: transform;
   transition: transform .7s cubic-bezier(.2, .7, .2, 1);
 }
@@ -138,6 +142,7 @@ cast-media-player { --progress-color: var(--accent); --playback-logo-image: none
   font-weight: 700;
   line-height: 1.28;
   color: var(--muted);
+  overflow-wrap: anywhere;
   transform-origin: 0 50%;
   transition: transform .6s cubic-bezier(.2, .7, .2, 1), opacity .6s;
 }

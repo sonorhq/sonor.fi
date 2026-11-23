@@ -1,11 +1,13 @@
-// CAF wiring only; the channel logic is in protocol.ts and the drawing in screen.ts.
+// CAF wiring only; the channel logic is in protocol.ts, the drawing in screen.ts.
 import "./style.css";
 import { NAMESPACE, handleMessage, initialState, lyricsFor, type State } from "./protocol";
-import { renderView, tick, type Track } from "./screen";
-import { screenMode } from "./view";
+import { renderView, tick } from "./screen";
+import { screenMode, trackOf } from "./view";
 
 const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
+// Sonor draws the whole screen, so CAF plays into a plain audio element and draws no UI of its own.
+playerManager.setMediaElement(document.getElementById("player") as HTMLAudioElement);
 
 let state: State = initialState();
 let playingKey: string | null = null;
@@ -13,18 +15,6 @@ let playingKey: string | null = null;
 const keyOf = (media: { customData?: unknown } | null | undefined): string | null => {
   const sonor = (media?.customData as { sonor?: { v?: number; key?: unknown } } | undefined)?.sonor;
   return sonor?.v === 1 && typeof sonor.key === "string" ? sonor.key : null;
-};
-
-// The CAF metadata is a union that ends in `object`, so the fields read here are typed by hand.
-const trackOf = (media: { metadata?: unknown } | null): Track | null => {
-  if (!media) return null;
-  const meta = (media.metadata ?? {}) as { title?: string; artist?: string; albumName?: string; images?: { url?: string }[] };
-  return {
-    title: meta.title ?? "",
-    artist: meta.artist ?? "",
-    album: meta.albumName ?? "",
-    cover: meta.images?.[0]?.url ?? null,
-  };
 };
 
 const render = (): void => {
