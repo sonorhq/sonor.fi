@@ -33,6 +33,10 @@ const CORS_HEADERS = {
 const VARY = { Vary: "X-Sonor-Platform" };
 // The channel iOS builds are published to now; appstore can follow under its own key.
 const IOS_CHANNEL = "testflight";
+// A publish is a small JSON object; anything larger is refused before it is read in full.
+const MAX_PUBLISH_BYTES = 1024;
+// Store links the iOS answer may carry. Anything else (the REPLACE_ME placeholder included) means no build is announced.
+const STORE_URL = /^https:\/\/(testflight\.apple\.com\/join\/|apps\.apple\.com\/)\S+$/;
 
 const text = (body: string | null, status: number, headers: HeadersInit = {}) =>
   new Response(body, { status, headers: { "Content-Type": "text/plain; charset=utf-8", ...headers } });
@@ -47,20 +51,6 @@ const field = (request: Request, name: string, missing = "") =>
 
 // Only release builds count: dev names and hand-made versions like 0.0.0-test aren't checks by a real app.
 const RELEASE_VERSION = /^\d+\.\d+\.\d+(-beta\.\d+)?$/;
-
-// Orders two release versions as semver does: 1.0.0 is newer than 1.0.0-beta.3, and betas count up.
-const compareVersions = (a: string, b: string): number => {
-  const parts = (version: string): number[] => {
-    const [core, beta] = version.split("-beta.");
-    return [...core.split(".").map(Number), beta === undefined ? Infinity : Number(beta)];
-  };
-  const x = parts(a);
-  const y = parts(b);
-  for (let i = 0; i < x.length; i++) {
-    if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1;
-  }
-  return 0;
-};
 
 // Recording must never fail the release check, so errors are dropped on purpose.
 const record = async (request: Request, env: Cloudflare.Env) => {
@@ -92,13 +82,15 @@ const record = async (request: Request, env: Cloudflare.Env) => {
 const iosLatestRelease = async (request: Request, env: Cloudflare.Env): Promise<Response> => {
   const build = await env.API_STATE.getByName("api").iosBuild(IOS_CHANNEL);
   const headers = { "Content-Type": "application/json", "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*", ...VARY };
-  if (!build) {
+  // No usable store link means no answer either: the placeholder must never reach the apps.
+  const storeUrl = env.IOS_STORE_URL;
+  if (!build || !storeUrl || storeUrl.includes("REPLACE_ME") || !STORE_URL.test(storeUrl)) {
     return new Response(request.method === "HEAD" ? null : JSON.stringify({ error: "no iOS build" }), { status: 404, headers });
   }
   const body = JSON.stringify({
     tag_name: `v${build.version}`,
     name: `Sonor ${build.version}`,
-    html_url: env.IOS_STORE_URL,
+    html_url: storeUrl,
     published_at: build.published_at,
     assets: [],
   });
@@ -147,27 +139,64 @@ const tokenMatches = async (request: Request, expected: string | undefined): Pro
   return crypto.subtle.timingSafeEqual(await digest(given), await digest(expected));
 };
 
+// Reads a body of at most `limit` bytes, or returns null when it is larger. The declared length is checked first,
+// then the bytes actually read, since a sender can lie about the length or send it chunked.
+const readCapped = async (request: Request, limit: number): Promise<string | null> => {
+  const declared = request.headers.get("Content-Length");
+  if (declared !== null && Number(declared) > limit) return null;
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+};
+
+// Like RELEASE_VERSION, but without leading zeros in any number, so one build has one spelling.
+const PUBLISH_VERSION = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-beta\.(0|[1-9]\d*))?$/;
+
 // The TestFlight step publishes the iOS build here. Not in CORS and not recorded: only the publish step calls it.
 const publishIos = async (request: Request, env: Cloudflare.Env): Promise<Response> => {
   if (request.method !== "PUT") return text("Method not allowed", 405, { Allow: "PUT" });
   if (!(await tokenMatches(request, env.IOS_PUBLISH_TOKEN))) return new Response(null, { status: 401 });
 
-  const body = (await request.json().catch(() => null)) as { version?: unknown; force?: unknown } | null;
+  const raw = await readCapped(request, MAX_PUBLISH_BYTES);
+  if (raw === null) return text("Payload too large", 413);
+  let body: { version?: unknown; force?: unknown } | null = null;
+  try {
+    body = JSON.parse(raw);
+  } catch {}
   const version = body?.version;
-  if (typeof version !== "string" || !RELEASE_VERSION.test(version)) return text("Bad request", 400);
+  if (typeof version !== "string" || version.length > MAX_VALUE_LENGTH || !PUBLISH_VERSION.test(version)) {
+    return text("Bad request", 400);
+  }
   if (body?.force !== undefined && typeof body.force !== "boolean") return text("Bad request", 400);
 
-  const stub = env.API_STATE.getByName("api");
-  const current = await stub.iosBuild(IOS_CHANNEL);
-  if (current && body?.force !== true && compareVersions(version, current.version) < 0) {
+  // One call to the Durable Object compares and writes, so two publishes can't both pass the check.
+  const build = { version, published_at: new Date().toISOString() };
+  const result = await env.API_STATE.getByName("api").publishIosBuild(IOS_CHANNEL, build, body?.force === true);
+  if (result === "conflict") {
     return new Response(JSON.stringify({ error: "Older than the published build" }), {
       status: 409,
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   }
-  const build = { version, published_at: new Date().toISOString() };
-  await stub.publishIosBuild(IOS_CHANNEL, build);
-  return new Response(JSON.stringify(build), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
+  return new Response(JSON.stringify(result), { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
 };
 
 // The Google Cast receiver skin: only these files, so nothing else in public/ is reachable.

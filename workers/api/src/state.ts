@@ -61,6 +61,21 @@ const outcomeOf = (status: number): UpstreamOutcome => {
   return "other";
 };
 
+// Orders two release versions as semver does: 1.0.0 is newer than 1.0.0-beta.3, and betas count up.
+// Both must already match the release pattern (numeric parts without leading zeros).
+const compareVersions = (a: string, b: string): number => {
+  const parts = (version: string): number[] => {
+    const [core, beta] = version.split("-beta.");
+    return [...core.split(".").map(Number), beta === undefined ? Infinity : Number(beta)];
+  };
+  const x = parts(a);
+  const y = parts(b);
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) return x[i] < y[i] ? -1 : 1;
+  }
+  return 0;
+};
+
 // One instance for the whole API: it holds the month's salt and the cached release.
 export class ApiState extends DurableObject {
   private inFlight: Promise<CachedRelease | null> | null = null;
@@ -81,11 +96,17 @@ export class ApiState extends DurableObject {
 
   // The iOS build announced on a channel (testflight now, appstore later), or undefined while none is.
   async iosBuild(channel: string): Promise<IosBuild | undefined> {
-    return this.ctx.storage.get<IosBuild>(`ios:${channel}`);
+    return this.ctx.storage.kv.get<IosBuild>(`ios:${channel}`);
   }
 
-  async publishIosBuild(channel: string, build: IosBuild): Promise<void> {
-    await this.ctx.storage.put(`ios:${channel}`, build);
+  // Compares and writes in one synchronous step (no await between), so two publishes can't both pass the check.
+  // Returns "conflict" and writes nothing when the version is lower than the published one and force isn't set.
+  publishIosBuild(channel: string, build: IosBuild, force: boolean): IosBuild | "conflict" {
+    const key = `ios:${channel}`;
+    const current = this.ctx.storage.kv.get<IosBuild>(key);
+    if (current && !force && compareVersions(build.version, current.version) < 0) return "conflict";
+    this.ctx.storage.kv.put(key, build);
+    return build;
   }
 
   // Runs at the start of a UTC month. A request that already started this month's salt keeps it.

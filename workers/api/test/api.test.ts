@@ -30,13 +30,14 @@ const OLD = release("v1.0.0-beta.2");
 const RELEASE_BODY = JSON.stringify(RELEASE);
 
 const IOS_TOKEN = "test-ios-publish-token";
+const IOS_STORE = "https://testflight.apple.com/join/TESTCODE";
 const stub = () => env.API_STATE.getByName("api");
 const points: AnalyticsEngineDataPoint[] = [];
 const testEnv = {
   API_STATE: env.API_STATE,
   ASSETS: env.ASSETS,
   RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
-  IOS_STORE_URL: env.IOS_STORE_URL,
+  IOS_STORE_URL: IOS_STORE,
   IOS_PUBLISH_TOKEN: IOS_TOKEN,
 } as unknown as Cloudflare.Env;
 
@@ -671,7 +672,7 @@ describe("iOS builds", () => {
     expect(JSON.parse(text)).toEqual({
       tag_name: "v0.1.0-beta.2",
       name: "Sonor 0.1.0-beta.2",
-      html_url: env.IOS_STORE_URL,
+      html_url: IOS_STORE,
       published_at: expect.any(String),
       assets: [],
     });
@@ -684,6 +685,28 @@ describe("iOS builds", () => {
     expect(res.status).toBe(404);
     expect(res.headers.get("Content-Type")).toBe("application/json");
     expect(JSON.parse(await res.text())).toEqual({ error: "no iOS build" });
+  });
+
+  it.each([
+    { name: "the placeholder still in wrangler.jsonc", url: "https://testflight.apple.com/join/REPLACE_ME" },
+    { name: "an empty link", url: "" },
+    { name: "a missing link", url: undefined },
+    { name: "a link to another host", url: "https://example.com/join/TESTCODE" },
+    { name: "a plain http link", url: "http://testflight.apple.com/join/TESTCODE" },
+    { name: "a link with a space in it", url: "https://apps.apple.com/app/sonor x" },
+  ])("answers 404 for iOS, never a store link, when the link is $name", async ({ url }) => {
+    await publish({ version: "0.1.0-beta.2" });
+    const unset = { ...testEnv, IOS_STORE_URL: url } as unknown as Cloudflare.Env;
+    const res = await run(new Request(`${BASE}/v1/releases/latest`, { headers: IOS_CHECK }), unset);
+    expect(res.status).toBe(404);
+    expect(JSON.parse(await res.text())).toEqual({ error: "no iOS build" });
+  });
+
+  it("answers iOS with an App Store link too", async () => {
+    await publish({ version: "0.1.0-beta.2" });
+    const appStore = { ...testEnv, IOS_STORE_URL: "https://apps.apple.com/app/sonor/id123" } as unknown as Cloudflare.Env;
+    const res = await run(new Request(`${BASE}/v1/releases/latest`, { headers: IOS_CHECK }), appStore);
+    expect(JSON.parse(await res.text())).toMatchObject({ html_url: "https://apps.apple.com/app/sonor/id123" });
   });
 
   it("answers HEAD for iOS without a body and without recording a check", async () => {
@@ -765,6 +788,50 @@ describe("iOS builds", () => {
     expect(res.status).toBe(200);
     expect((await storedIos())?.version).toBe("0.1.0-beta.2");
     expect(await (await latest(IOS_CHECK)).json()).toMatchObject({ tag_name: "v0.1.0-beta.2" });
+  });
+
+  it("refuses leading zeros and over-long versions for publishing", async () => {
+    for (const version of ["0.1.01", "01.1.0", "0.01.0", "0.1.0-beta.02", `1.2.3-beta.${"1".repeat(40)}`]) {
+      expect((await publish({ version })).status).toBe(400);
+    }
+    expect((await publish({ version: "0.0.0-beta.0" })).status).toBe(200);
+    expect(await storedIos()).toEqual({ version: "0.0.0-beta.0", published_at: expect.any(String) });
+  });
+
+  it("refuses a body over 1 KB, declared or not, and stores nothing", async () => {
+    const padded = JSON.stringify({ version: "0.1.0-beta.2", pad: "x".repeat(1100) });
+    const declared = await run(
+      new Request(`${BASE}/v1/ios/latest`, { method: "PUT", headers: { Authorization: `Bearer ${IOS_TOKEN}` }, body: padded }),
+    );
+    expect(declared.status).toBe(413);
+
+    const chunked = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(padded.slice(0, 600)));
+        controller.enqueue(new TextEncoder().encode(padded.slice(600)));
+        controller.close();
+      },
+    });
+    const streamed = await run(
+      new Request(`${BASE}/v1/ios/latest`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${IOS_TOKEN}` },
+        body: chunked,
+        duplex: "half",
+      } as RequestInit),
+    );
+    expect(streamed.status).toBe(413);
+    expect(await storedIos()).toBeUndefined();
+  });
+
+  it("accepts a body of exactly 1 KB", async () => {
+    const body = JSON.stringify({ version: "0.1.0-beta.2" });
+    const sized = body.slice(0, -1) + `,"pad":"${"x".repeat(1024 - body.length - 9)}"}`;
+    expect(new TextEncoder().encode(sized).byteLength).toBe(1024);
+    const res = await run(
+      new Request(`${BASE}/v1/ios/latest`, { method: "PUT", headers: { Authorization: `Bearer ${IOS_TOKEN}` }, body: sized }),
+    );
+    expect(res.status).toBe(200);
   });
 
   it("answers 400 for a version outside the release pattern, a non-boolean force, or a body that isn't JSON", async () => {
