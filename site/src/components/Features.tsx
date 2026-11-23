@@ -1,5 +1,7 @@
 import { ACCENT_ICONS, COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../features";
+import { readyPhone } from "../shots";
 import { AppIcon } from "./Logo";
+import { ShotPair } from "./ShotPair";
 
 function AccentIcons() {
   return (
@@ -13,21 +15,24 @@ function AccentIcons() {
 
 // The optional picture of a feature block: a screenshot when the entry is ready, or a drawn visual. Width and
 // height come from the entry, so the browser reserves the space (and the frame keeps its ratio) before it loads.
-function FeatureImage({ feature }: { feature: Feature }) {
+// A phone shot, when the entry has a ready one, sits beside the screenshot.
+export function FeatureImage({ feature }: { feature: Feature }) {
   if (feature.visual === "accent-icons") return <AccentIcons />;
   const image = readyImage(feature);
   if (!image) return null;
   return (
-    <img
-      className="feature-img"
-      src={image.src}
-      width={image.width}
-      height={image.height}
-      style={{ aspectRatio: `${image.width} / ${image.height}` }}
-      loading="lazy"
-      decoding="async"
-      alt={image.alt}
-    />
+    <ShotPair className="feature-pic" phone={readyPhone(image.phone)}>
+      <img
+        className="feature-img"
+        src={image.src}
+        width={image.width}
+        height={image.height}
+        style={{ aspectRatio: `${image.width} / ${image.height}` }}
+        loading="lazy"
+        decoding="async"
+        alt={image.alt}
+      />
+    </ShotPair>
   );
 }
 

@@ -1,35 +1,27 @@
-import { SCREENSHOTS } from "../screenshots";
+import { SCREENSHOTS, type Screenshot } from "../screenshots";
+import { readyPhone } from "../shots";
+import { ShotPair } from "./ShotPair";
 
 // Sizes of the files in public/screenshots/, so the browser reserves the space before they load.
 const DESKTOP = { width: 1600, height: 1005 };
-const PHONE = { width: 900, height: 1950 };
 
 /** One figure per ready entry: the desktop shot, the phone shot beside it when there is one, and a caption. */
-export function Screenshots() {
+export function Screenshots({ shots = SCREENSHOTS }: { shots?: Screenshot[] }) {
   return (
     <div className="screens">
-      {SCREENSHOTS.filter((shot) => shot.ready).map((shot) => (
+      {shots.filter((shot) => shot.ready).map((shot) => (
         <figure key={shot.id} className="shot">
-          <img
-            className="shot-desk"
-            src={shot.desktop}
-            width={DESKTOP.width}
-            height={DESKTOP.height}
-            loading="lazy"
-            decoding="async"
-            alt={shot.alt}
-          />
-          {shot.phone ? (
+          <ShotPair phone={readyPhone(shot.phone)}>
             <img
-              className="shot-phone"
-              src={shot.phone}
-              width={PHONE.width}
-              height={PHONE.height}
+              className="shot-desk"
+              src={shot.desktop}
+              width={DESKTOP.width}
+              height={DESKTOP.height}
               loading="lazy"
               decoding="async"
-              alt=""
+              alt={shot.alt}
             />
-          ) : null}
+          </ShotPair>
           <figcaption>{shot.caption}</figcaption>
         </figure>
       ))}

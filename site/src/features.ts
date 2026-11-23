@@ -2,6 +2,8 @@
 // on the way are in COMING. An entry's image sits above its text and shows only when `ready` is true, so
 // a picture can be added before its file exists (like the app screenshots in screenshots.ts).
 
+import type { PhoneShot } from "./shots";
+
 export interface FeatureImage {
   /** The file under public/screenshots/, WebP. */
   src: string;
@@ -11,6 +13,8 @@ export interface FeatureImage {
   /** Describes what the picture shows; read by screen readers. */
   alt: string;
   ready: boolean;
+  /** A phone shot beside the picture, when the feature has one; it shows only when its own `ready` is true. */
+  phone?: PhoneShot;
 }
 
 export interface Feature {

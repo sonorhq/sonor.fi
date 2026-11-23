@@ -1,3 +1,5 @@
+import type { PhoneShot } from "./shots";
+
 // The app screenshots on the home page, from the owner's app (dark only, as the app is).
 // A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
 // An entry shows only when `ready` is true, so a shot can be added before its files are.
@@ -10,8 +12,8 @@ export interface Screenshot {
   ready: boolean;
   /** The desktop file, 1600 × 1004 (about 16:10). */
   desktop: string;
-  /** The phone file, 900 × 1950 (9:19.5), shown beside the desktop one when present. */
-  phone?: string;
+  /** The phone shot, 900 × 1950 (9:19.5), shown beside the desktop one when it is ready. */
+  phone?: PhoneShot;
 }
 
 export const SCREENSHOTS: Screenshot[] = [

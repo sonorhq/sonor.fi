@@ -62,9 +62,9 @@ section { padding: clamp(5rem, 10vw, 8.5rem) 0 0; }
 .feature-visual { margin-bottom: 1.1rem; }
 .accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; padding: 1.25rem; border-radius: 12px; background: var(--bg); box-shadow: 0 0 0 1px var(--line-2); }
 .accent-icons svg { width: 100%; height: auto; }
-@media (max-width: 700px) { .shot { max-width: 100%; } }
 @media (max-width: 560px) { .accent-icons { grid-template-columns: repeat(3, 1fr); } }
-.feature-img { display: block; width: 100%; height: auto; background: var(--bg-2); border-radius: 12px; margin-bottom: 1.1rem; box-shadow: 0 0 0 1px var(--line-2); }
+.feature-pic { margin-bottom: 1.1rem; }
+.feature-img { display: block; width: 100%; height: auto; background: var(--bg-2); border-radius: 12px; box-shadow: 0 0 0 1px var(--line-2); }
 
 /* octo: cards, two across on a wide screen */
 .octo-grid { list-style: none; margin: 3rem auto 0; padding: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); text-align: left; }
@@ -144,7 +144,10 @@ footer code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; 
 .shot-desk, .shot-phone { display: block; height: auto; }
 .shot { flex: 1 1 min(100%, 26rem); max-width: calc(50% - 1rem); margin: 0; position: relative; display: flex; flex-direction: column; gap: .75rem; }
 .shot figcaption { color: var(--faint); font-size: .8125rem; }
-.shot-phone { position: absolute; right: 0; bottom: -8%; width: 19%; border-radius: 15% / 7%; box-shadow: 0 30px 70px -18px rgb(0 0 0 / .75), 0 0 0 1px rgb(246 244 241 / .1); }
+@media (max-width: 700px) { .shot { max-width: 100%; } }
+/* A phone shot sits beside the desktop one, bottom-aligned; the grid keeps the pair inside the column on a phone. */
+.shot-pair.with-phone { display: grid; grid-template-columns: minmax(0, 1fr) 24%; align-items: end; gap: 1rem; }
+.shot-phone { width: 100%; border-radius: 15% / 7%; box-shadow: 0 30px 70px -18px rgb(0 0 0 / .75), 0 0 0 1px rgb(246 244 241 / .1); }
 .shot-desk { width: 100%; border-radius: 12px; box-shadow: 0 30px 80px -20px rgb(0 0 0 / .7), 0 0 0 1px rgb(246 244 241 / .09); }
 .narrow-page { max-width: 34rem; padding-top: 1rem; text-align: left; }
 .narrow-page h1 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem); letter-spacing: -.02em; margin: 0 0 1rem; }
