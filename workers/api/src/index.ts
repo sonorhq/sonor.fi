@@ -7,6 +7,7 @@ declare global {
     interface Env {
       RELEASE_CHECKS: AnalyticsEngineDataset;
       UPSTREAM_CHECKS: AnalyticsEngineDataset;
+      ASSETS: Fetcher;
       API_STATE: DurableObjectNamespace<ApiState>;
       // Optional fine-grained token with read-only access to public repositories, set with `wrangler secret put`.
       GITHUB_TOKEN?: string;
@@ -92,6 +93,32 @@ const latestRelease = async (request: Request, env: Cloudflare.Env, ctx: Executi
   return new Response(request.method === "HEAD" ? null : release.body, { headers });
 };
 
+// The Google Cast receiver skin: only these files, so nothing else in public/ is reachable.
+const CAST_TYPES: Record<string, string> = {
+  "receiver.css": "text/css; charset=utf-8",
+  "background.png": "image/png",
+  "splash.png": "image/png",
+  "logo.png": "image/png",
+  "watermark.png": "image/png",
+};
+
+const castAsset = async (request: Request, env: Cloudflare.Env, name: string): Promise<Response> => {
+  const type = CAST_TYPES[name];
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS_HEADERS, Allow: ALLOW } });
+  if (!type) return text("Not found", 404);
+  if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
+  const asset = await env.ASSETS.fetch(new Request(request.url, { method: "GET" }));
+  if (!asset.ok) return text("Not found", 404);
+  return new Response(request.method === "HEAD" ? null : asset.body, {
+    headers: {
+      "Content-Type": type,
+      // The skin can change under the same URL, so keep it short-lived.
+      "Cache-Control": "public, max-age=3600",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+};
+
 export default {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext): Promise<Response> {
     const { pathname } = new URL(request.url);
@@ -100,6 +127,7 @@ export default {
       if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
       return text(request.method === "HEAD" ? null : "ok", 200);
     }
+    if (pathname.startsWith("/cast/")) return castAsset(request, env, pathname.slice("/cast/".length));
     return text("Not found", 404);
   },
 } satisfies ExportedHandler<Cloudflare.Env>;

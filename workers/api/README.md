@@ -27,6 +27,8 @@ Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40. An empty `X-S
 - `X-Sonor-Release-Age` on the `200` and `503`: seconds since GitHub last answered with the release. A failed refresh doesn't reset it.
 - `HEAD` answers like `GET` without a body and without counting. `OPTIONS` gets `204` with the CORS headers. Other methods get `405`, other paths `404`.
 
+`GET /cast/receiver.css` (and the images it references, `/cast/background.png`, `splash.png`, `logo.png`, `watermark.png`) is Sonor's skin for the Google Cast Styled Media Receiver; its Skin URL in the Cast console is `https://api.sonor.fi/cast/receiver.css`. The files live in `public/cast/` and are served by the Worker with `Access-Control-Allow-Origin: *` and `Cache-Control: public, max-age=3600`. Nothing is recorded. Other `/cast/` paths get `404`.
+
 `GET /v1/health` answers `200` with `ok`, without counting. It's for uptime checks.
 
 ## What is recorded
