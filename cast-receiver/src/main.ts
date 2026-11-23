@@ -7,6 +7,7 @@ const playerManager = context.getPlayerManager();
 
 let state: State = initialState();
 let playingKey: string | null = null;
+let activeIndex = -1;
 
 const el = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
 
@@ -20,6 +21,7 @@ const render = (): void => {
   const list = el("lyrics");
   const note = el("lyrics-note");
   list.replaceChildren();
+  activeIndex = -1;
   note.textContent = "";
   if (lyrics && !lyrics.none) {
     for (const line of lyrics.lines) {
@@ -48,7 +50,12 @@ const highlight = (): void => {
   const lyrics = lyricsFor(state, playingKey ?? state.queue?.current ?? null);
   if (!lyrics || lyrics.none || !lyrics.synced) return;
   const active = activeLine(lyrics.lines, playerManager.getCurrentTimeSec() * 1000);
-  el("lyrics").querySelectorAll("li").forEach((li, i) => li.classList.toggle("active", i === active));
+  if (active === activeIndex) return;
+  activeIndex = active;
+  el("lyrics").querySelectorAll("li").forEach((li, i) => {
+    li.classList.toggle("active", i === active);
+    if (i === active) li.scrollIntoView({ block: "center", behavior: "smooth" });
+  });
 };
 
 // Registered before start(), or the first messages are lost.
@@ -68,4 +75,4 @@ playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () 
 });
 
 setInterval(highlight, 250);
-context.start({ disableIdleTimeout: true });
+context.start();

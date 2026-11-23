@@ -43,8 +43,8 @@ export interface State {
   greeted: boolean;
   app: string | null;
   queue: QueueInfo | null;
-  /** The latest lyrics message; use `lyricsFor` to read it for the playing key. */
-  lyrics: Lyrics | null;
+  /** Lyrics by track key, only for the queue's current and next items; read with `lyricsFor`. */
+  lyrics: ReadonlyMap<string, Lyrics>;
 }
 
 export type Reply =
@@ -56,7 +56,7 @@ export interface Result {
   replies: Reply[];
 }
 
-export const initialState = (): State => ({ greeted: false, app: null, queue: null, lyrics: null });
+export const initialState = (): State => ({ greeted: false, app: null, queue: null, lyrics: new Map() });
 
 const encoder = new TextEncoder();
 export const byteLength = (value: unknown): number =>
@@ -70,8 +70,14 @@ class Bad extends Error {}
 const isRecord = (x: unknown): x is Record<string, unknown> =>
   typeof x === "object" && x !== null && !Array.isArray(x);
 
+// Unicode code points, like Go's utf8.RuneCountInString in the sender (not UTF-16 units: an emoji is 2).
+const codePoints = (x: string): number => {
+  let n = 0;
+  for (const _ of x) if (++n > MAX_TEXT) break;
+  return n;
+};
 const text = (x: unknown, allowEmpty = true): string => {
-  if (typeof x !== "string" || x.length > MAX_TEXT || (!allowEmpty && x.length === 0)) throw new Bad();
+  if (typeof x !== "string" || codePoints(x) > MAX_TEXT || (!allowEmpty && x.length === 0)) throw new Bad();
   return x;
 };
 const int = (x: unknown): number => {
@@ -169,12 +175,28 @@ export const handleMessage = (raw: unknown, state: State, maxBytes = MAX_BYTES):
           state: { ...state, greeted: true, app: text(message.app) },
           replies: [{ type: "ready", v: 1, features: [...FEATURES], maxBytes }],
         };
-      case "queue":
-        return { state: { ...state, queue: parseQueue(message) }, replies: [] };
-      case "lyrics":
-        return { state: { ...state, lyrics: parseLyrics(message) }, replies: [] };
+      case "queue": {
+        const queue = parseQueue(message);
+        const keep = new Set([queue.current, ...queue.next.map((n) => n.key)]);
+        const lyrics = new Map([...state.lyrics].filter(([key]) => keep.has(key)));
+        return { state: { ...state, queue, lyrics }, replies: [] };
+      }
+      case "lyrics": {
+        const lyrics = parseLyrics(message);
+        const { queue } = state;
+        // Lyrics for a track that is neither playing nor next are not wanted.
+        if (queue && lyrics.key !== queue.current && !queue.next.some((n) => n.key === lyrics.key)) {
+          return { state, replies: [] };
+        }
+        const map = new Map(state.lyrics);
+        map.delete(lyrics.key);
+        map.set(lyrics.key, lyrics);
+        // Without a queue yet, keep the newest few so nothing grows unbounded.
+        while (map.size > MAX_NEXT + 1) map.delete(map.keys().next().value as string);
+        return { state: { ...state, lyrics: map }, replies: [] };
+      }
       case "clear":
-        return { state: { ...state, queue: null, lyrics: null }, replies: [] };
+        return { state: { ...state, queue: null, lyrics: new Map() }, replies: [] };
       default:
         // Unknown (and receiver-to-sender) types are ignored, so newer senders keep working.
         return { state, replies: [] };
@@ -187,7 +209,7 @@ export const handleMessage = (raw: unknown, state: State, maxBytes = MAX_BYTES):
 
 /** The lyrics for the playing track, or null when none arrived for it. */
 export const lyricsFor = (state: State, key: string | null): Lyrics | null =>
-  key !== null && state.lyrics?.key === key ? state.lyrics : null;
+  key === null ? null : (state.lyrics.get(key) ?? null);
 
 /** Index of the synced line playing at `ms`, or -1 before the first line. */
 export const activeLine = (lines: [number, string][], ms: number): number => {
@@ -197,8 +219,9 @@ export const activeLine = (lines: [number, string][], ms: number): number => {
 };
 
 /**
- * The sender's size rule, kept here so both sides test the same code: drop word timing first, then
- * cut lines from the end and set `truncated`.
+ * Reference implementation of the sender's size rule (drop word timing first, then cut lines from
+ * the end and set `truncated`). The receiver never sends lyrics; this pins the rule down for the
+ * fixtures and tests, and Sonor's Go sender implements the same rule.
  */
 export const fitLyrics = (lyrics: Lyrics, maxBytes = MAX_BYTES): Lyrics => {
   // The limit applies to the whole message, envelope included.

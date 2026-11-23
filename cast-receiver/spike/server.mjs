@@ -20,6 +20,7 @@ const routes = {
 
 // The production build (dist/), with the emulator scripts injected before the CAF SDK: the real
 // page never carries them.
+const csp = JSON.parse(await readFile(join(here, '../../workers/api/src/receiver-csp.json'), 'utf8')).csp
 const dist = join(here, '..', 'dist')
 const appTypes = { 'main.js': 'text/javascript', 'main.css': 'text/css' }
 const caf = '<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/'
@@ -33,7 +34,7 @@ createServer(async (req, res) => {
     if (file === 'index.html') {
       body = body.replace(caf, '<script src="/presentation-polyfill.js"></script><script src="/cast-receiver-emulator.js"></script>' + caf)
     }
-    return void res.writeHead(200, { 'content-type': appTypes[file] ?? 'text/html' }).end(body)
+    return void res.writeHead(200, { 'content-type': appTypes[file] ?? 'text/html', ...(file === 'index.html' ? { 'content-security-policy': csp } : {}) }).end(body)
   }
   const route = routes[pathname]
   if (!route) {

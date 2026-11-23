@@ -1,3 +1,4 @@
+import receiverCsp from "./receiver-csp.json";
 import { MAX_STALE_AGE_MS, RETRY_AFTER_FAILURE_MS, type ApiState } from "./state";
 
 export { ApiState } from "./state";
@@ -109,22 +110,26 @@ const RECEIVER_TYPES: Record<string, string> = {
   "main.js": "text/javascript; charset=utf-8",
   "main.css": "text/css; charset=utf-8",
 };
-const RECEIVER_DIRS: Record<string, string> = {
-  receiver: "public, max-age=300",
-  "receiver-next": "no-cache",
-};
+const RECEIVER_DIRS = ["receiver", "receiver-next"];
+// receiver-next is where changes are tried, so it also carries the Content-Security-Policy (checked
+// against what CAF loads in the emulator run); production gets it once tried on a real device.
+// The page is always revalidated; its scripts are cached on production only.
+const receiverCache = (dir: string, file: string): string =>
+  file === "" || dir === "receiver-next" ? "no-cache" : "public, max-age=300";
 
 const castAsset = async (request: Request, env: Cloudflare.Env, name: string): Promise<Response> => {
   let type = Object.hasOwn(CAST_TYPES, name) ? CAST_TYPES[name] : undefined;
   // The skin can change under the same URL, so keep it short-lived.
   let cacheControl = "public, max-age=3600";
+  let csp: string | undefined;
   const slash = name.indexOf("/");
   if (!type && slash > 0) {
     const dir = name.slice(0, slash);
     const file = name.slice(slash + 1);
-    if (Object.hasOwn(RECEIVER_DIRS, dir) && Object.hasOwn(RECEIVER_TYPES, file)) {
+    if (RECEIVER_DIRS.includes(dir) && Object.hasOwn(RECEIVER_TYPES, file)) {
       type = RECEIVER_TYPES[file];
-      cacheControl = RECEIVER_DIRS[dir]!;
+      cacheControl = receiverCache(dir, file);
+      if (dir === "receiver-next" && file === "") csp = receiverCsp.csp;
     }
   }
   if (!type) return text("Not found", 404);
@@ -138,6 +143,7 @@ const castAsset = async (request: Request, env: Cloudflare.Env, name: string): P
       "Cache-Control": cacheControl,
       "X-Content-Type-Options": "nosniff",
       "Access-Control-Allow-Origin": "*",
+      ...(csp ? { "Content-Security-Policy": csp } : {}),
     },
   });
 };

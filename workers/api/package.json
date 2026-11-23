@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm build && wrangler dev",
+    "dev": "pnpm --filter \"sonor-api...\" build && wrangler dev",
     "build": "node scripts/copy-receiver.mjs",
     "pretest": "pnpm --filter \"sonor-api...\" build",
     "deploy": "pnpm --filter \"sonor-api...\" build && wrangler deploy",

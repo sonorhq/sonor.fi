@@ -567,12 +567,24 @@ describe("other requests", () => {
       ["main.js", "text/javascript; charset=utf-8", "urn:x-cast:fi.sonor"],
       ["main.css", "text/css; charset=utf-8", "#lyrics"],
     ];
-    for (const [dir, cache] of [["receiver", "public, max-age=300"], ["receiver-next", "no-cache"]] as const) {
+    for (const dir of ["receiver", "receiver-next"]) {
       for (const [file, type, body] of expected) {
         const res = await request(`/cast/${dir}/${file}`);
         expect(res.status).toBe(200);
         expect(res.headers.get("Content-Type")).toBe(type);
-        expect(res.headers.get("Cache-Control")).toBe(cache);
+        // The page is always revalidated; scripts are cached on production only.
+        const revalidate = file === "" || dir === "receiver-next";
+        expect(res.headers.get("Cache-Control")).toBe(revalidate ? "no-cache" : "public, max-age=300");
+        // The policy is on receiver-next's page only, until it is tried on a real device.
+        const csp = res.headers.get("Content-Security-Policy");
+        if (dir === "receiver-next" && file === "") {
+          expect(csp).toContain("default-src 'self'");
+          expect(csp).toContain("script-src 'self' https://www.gstatic.com https://ajax.googleapis.com");
+          expect(csp).toContain("object-src 'none'");
+          expect(csp).toContain("base-uri 'none'");
+        } else {
+          expect(csp).toBeNull();
+        }
         expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
         expect(await res.text()).toContain(body);
       }

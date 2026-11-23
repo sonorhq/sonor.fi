@@ -80,7 +80,7 @@ describe("queue", () => {
 describe("lyrics", () => {
   it("stores synced lyrics, with words", () => {
     const { state } = send(raw("lyrics-synced"));
-    const lyrics = state.lyrics as Extract<Lyrics, { synced: true }>;
+    const lyrics = lyricsFor(state, "K1") as Extract<Lyrics, { synced: true }>;
     expect(lyrics.synced).toBe(true);
     expect(lyrics.source).toBe("lrclib");
     expect(lyrics.lines[1]).toEqual([16500, "Second line"]);
@@ -88,14 +88,14 @@ describe("lyrics", () => {
     expect(lyrics.truncated).toBe(false);
   });
   it("stores plain lyrics", () => {
-    const lyrics = send(raw("lyrics-plain")).state.lyrics;
+    const lyrics = lyricsFor(send(raw("lyrics-plain")).state, "K1");
     expect(lyrics).toMatchObject({ synced: false, lines: ["First line", "Second line", "Third line"] });
   });
   it("stores none", () => {
-    expect(send(raw("lyrics-none")).state.lyrics).toEqual({ key: "K1", none: true });
+    expect(lyricsFor(send(raw("lyrics-none")).state, "K1")).toEqual({ key: "K1", none: true });
   });
   it("keeps the truncated flag", () => {
-    expect(send(raw("lyrics-truncated")).state.lyrics).toMatchObject({ truncated: true });
+    expect(lyricsFor(send(raw("lyrics-truncated")).state, "K1")).toMatchObject({ truncated: true });
   });
   it("rejects malformed lyrics", () => {
     const s = fixture("lyrics-synced") as { words: unknown[] };
@@ -116,6 +116,37 @@ describe("lyrics", () => {
   });
 });
 
+describe("lyrics slots", () => {
+  const lyricsFor2 = (key: string) => ({ ...(fixture("lyrics-plain") as object), key });
+  it("keeps the next track's lyrics beside the playing one", () => {
+    let state = send(raw("queue")).state; // current K1, next K2 K3 K4
+    state = send(raw("lyrics-plain"), state).state;
+    state = send(lyricsFor2("K2"), state).state;
+    expect(lyricsFor(state, "K1")).not.toBeNull();
+    expect(lyricsFor(state, "K2")).not.toBeNull();
+  });
+  it("ignores lyrics for tracks outside the queue's current and next", () => {
+    const state = send(raw("queue")).state;
+    const after = send(lyricsFor2("K99"), state);
+    expect(after).toEqual({ state, replies: [] });
+  });
+  it("prunes when the queue moves on", () => {
+    let state = send(raw("queue")).state;
+    state = send(raw("lyrics-plain"), state).state;
+    state = send(lyricsFor2("K2"), state).state;
+    state = send({ ...(fixture("queue") as object), current: "K2", index: 4, next: [] }, state).state;
+    expect(lyricsFor(state, "K1")).toBeNull();
+    expect(lyricsFor(state, "K2")).not.toBeNull();
+  });
+  it("accepts lyrics before the first queue, capped at six", () => {
+    let state = initialState();
+    for (let i = 0; i < 8; i++) state = send(lyricsFor2(`T${i}`), state).state;
+    expect(state.lyrics.size).toBe(6);
+    expect(lyricsFor(state, "T0")).toBeNull();
+    expect(lyricsFor(state, "T7")).not.toBeNull();
+  });
+});
+
 describe("clear", () => {
   it("drops queue and lyrics, keeps the greeting", () => {
     let state = send({ type: "hello", v: 1, app: "Sonor 1" }).state;
@@ -123,7 +154,19 @@ describe("clear", () => {
     state = send(raw("lyrics-plain"), state).state;
     const cleared = send(raw("clear"), state);
     expect(cleared.replies).toEqual([]);
-    expect(cleared.state).toEqual({ greeted: true, app: "Sonor 1", queue: null, lyrics: null });
+    expect(cleared.state).toEqual({ greeted: true, app: "Sonor 1", queue: null, lyrics: new Map() });
+  });
+});
+
+describe("text length", () => {
+  it("counts Unicode code points, not UTF-16 units", () => {
+    const emoji = "😀";
+    const base = fixture("lyrics-plain") as object;
+    expect(send({ ...base, lines: [emoji.repeat(200)] }).replies).toEqual([]);
+    expect(send({ ...base, lines: [emoji.repeat(201)] }).replies).toHaveLength(1);
+    const q = fixture("queue") as { next: Record<string, unknown>[] };
+    expect(send({ ...q, next: [{ ...q.next[1], title: emoji.repeat(200) }] }).replies).toEqual([]);
+    expect(send({ ...q, next: [{ ...q.next[1], title: emoji.repeat(201) }] }).replies).toHaveLength(1);
   });
 });
 

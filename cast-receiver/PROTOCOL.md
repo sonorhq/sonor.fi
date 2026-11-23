@@ -15,7 +15,7 @@ this channel only carries what the standard messages cannot: the upcoming queue 
 - A message is at most 60,000 bytes of UTF-8 (the Cast limit is 64 KB; the rest is headroom).
   The sender must stay under it; the receiver answers a larger one with `error` / `TOO_LARGE`.
 - Text fields (`app`, keys, `title`, `artist`, `album`, `source`, lyrics lines and words) are at
-  most 200 characters; the sender cuts longer ones and the receiver answers `BAD_MESSAGE` to a
+  most 200 Unicode code points (what Go's `utf8.RuneCountInString` counts; an emoji is one); the sender cuts longer ones and the receiver answers `BAD_MESSAGE` to a
   message with a longer one. Other `BAD_MESSAGE` cases: more than 5 `next` items, `index` not below
   `total`, an `image` that is not an `https://` URL, `words` whose length differs from `lines`, a
   missing `v`, `type` or required field.
@@ -29,7 +29,7 @@ Every queue item the sender loads carries
 ```
 
 in the media `customData`. `key` is an opaque track key chosen by the sender; the receiver uses it
-to match `queue` and `lyrics` messages to the item that is playing. Keys are at most 200 characters.
+to match `queue` and `lyrics` messages to the item that is playing. Keys are at most 200 Unicode code points.
 
 ## Sonor to receiver
 
@@ -57,7 +57,7 @@ tracks change.
 | `total` | Number of items in the whole queue. |
 | `next` | The next items, at most 5, in play order. |
 | `next[].key` | Track key (same as the item's customData key). |
-| `next[].title`, `artist`, `album` | Text, at most 200 characters. |
+| `next[].title`, `artist`, `album` | Text, at most 200 Unicode code points. |
 | `next[].duration` | Seconds, integer. |
 | `next[].image` | Optional. An https URL of a cover served through the relay (the receiver cannot reach the user's server). Absent when there is none. |
 
@@ -96,7 +96,10 @@ Size rule, applied by the sender in this order until the message fits in 60,000 
 1. Drop `words`.
 2. Cut lines from the end and set `"truncated":true`.
 
-The receiver ignores lyrics whose `key` is not the playing item's key.
+The receiver keeps lyrics for the queue's current item and its `next` items, one entry per key, so
+a prefetched lyrics message for the next track does not replace the playing one's. It drops entries
+whose key leaves the queue's current and next keys when a `queue` message arrives, ignores lyrics
+for any other key once a queue is known, and shows only the entry for the playing key.
 
 ### clear
 

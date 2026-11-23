@@ -5,6 +5,15 @@ const NS = 'urn:x-cast:fi.sonor'
 const fixture = (name) => JSON.parse(readFileSync(new URL(`../test/fixtures/${name}.json`, import.meta.url), 'utf8'))
 
 test('the built receiver app talks the fi.sonor channel', async ({ page: sender }) => {
+  // The receiver-next policy (served by the spike server) must not break what CAF loads.
+  const violations = []
+  sender.context().on('console', (m) => {
+    // CAF also loads Shaka from ajax.googleapis.com with the page's scheme, which is http on this
+    // localhost; on the real https page the policy's https://ajax.googleapis.com source covers it.
+    if (/Content Security Policy|Refused to/i.test(m.text()) && !m.text().includes("'http://ajax.googleapis.com/ajax/libs/shaka-player/")) {
+      violations.push(m.text())
+    }
+  })
   await sender.goto('/sender.html?receiver=/app/')
   await sender.waitForFunction(() => window.castReady && cast.framework.CastContext.getInstance().getCastState() === 'NOT_CONNECTED')
   const [receiver] = await Promise.all([sender.waitForEvent('popup'), sender.click('#cast')])
@@ -31,4 +40,6 @@ test('the built receiver app talks the fi.sonor channel', async ({ page: sender 
   await send({ type: 'queue', v: 1 })
   await expect.poll(() => sender.evaluate(() => window.fromReceiver.length)).toBe(2)
   expect(JSON.parse(await sender.evaluate(() => window.fromReceiver[1].message))).toEqual({ type: 'error', v: 1, code: 'BAD_MESSAGE', ref: 'queue' })
+
+  expect(violations).toEqual([])
 })
