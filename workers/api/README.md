@@ -26,6 +26,16 @@ Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40. An empty `X-S
 - `502` when GitHub fails and nothing is cached. The apps fall back to GitHub directly, so this is never fatal for them.
 - `X-Sonor-Release-Age` on the `200` and `503`: seconds since GitHub last answered with the release. A failed refresh doesn't reset it.
 - `HEAD` answers like `GET` without a body and without counting. `OPTIONS` gets `204` with the CORS headers. Other methods get `405`, other paths `404`.
+- With `X-Sonor-Platform: ios` the check is counted as usual, but the answer is never the GitHub release: it's the latest iOS build published with `PUT /v1/ios/latest` (below), as `{"tag_name":"v<version>","name":"Sonor <version>","html_url":<the store link>,"published_at":<when published>,"assets":[]}`. `404` with `{"error":"no iOS build"}` until one is published. iOS never falls back to GitHub.
+- Every answer on this endpoint carries `Vary: X-Sonor-Platform`.
+
+`PUT /v1/ios/latest` publishes the iOS build the release endpoint announces. It's the TestFlight step's call, not the apps': the body is `{"version":"0.1.0-beta.N"}` (the same format as the app's version) and `Authorization: Bearer <token>` must match the `IOS_PUBLISH_TOKEN` secret, compared in constant time. A missing or wrong token gets a bare `401`, and with no secret set every token is refused. A version lower than the published one gets `409`; `"force": true` publishes it anyway. A valid publish answers `200` with the stored `{version, published_at}`, and `400` for a bad body. It stores the build under the `ios:testflight` key of the `ApiState` Durable Object (an App Store channel can follow under `ios:appstore`). It writes no data point, isn't in CORS, and never logs or echoes the token.
+
+```sh
+pnpm exec wrangler secret put IOS_PUBLISH_TOKEN
+```
+
+The store link the answer carries is `IOS_STORE_URL` in `wrangler.jsonc`'s `vars`; it's still the `REPLACE_ME` placeholder until the TestFlight code is set there.
 
 `GET /cast/receiver.css` (and the images it references, `/cast/background.png`, `splash.png`, `logo.png`, `watermark.png`) is Sonor's skin for the Google Cast Styled Media Receiver; its Skin URL in the Cast console is `https://api.sonor.fi/cast/receiver.css`. The files live in `public/cast/` and are served by the Worker with `Access-Control-Allow-Origin: *` and `Cache-Control: public, max-age=3600`. Nothing is recorded. Other `/cast/` paths get `404`.
 

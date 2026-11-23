@@ -15,6 +15,12 @@ interface Salt {
   value: string;
 }
 
+// An iOS build announced on a channel: the version, and when it was published.
+export interface IosBuild {
+  version: string;
+  published_at: string;
+}
+
 export interface CachedRelease {
   body: string;
   // When GitHub last answered with a release. The copy's age is counted from here, never from a failed refresh.
@@ -71,6 +77,15 @@ export class ApiState extends DurableObject {
     }
     const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(salt.value + ip));
     return hex(new Uint8Array(digest));
+  }
+
+  // The iOS build announced on a channel (testflight now, appstore later), or undefined while none is.
+  async iosBuild(channel: string): Promise<IosBuild | undefined> {
+    return this.ctx.storage.get<IosBuild>(`ios:${channel}`);
+  }
+
+  async publishIosBuild(channel: string, build: IosBuild): Promise<void> {
+    await this.ctx.storage.put(`ios:${channel}`, build);
   }
 
   // Runs at the start of a UTC month. A request that already started this month's salt keeps it.
