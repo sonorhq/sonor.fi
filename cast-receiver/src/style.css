@@ -1,0 +1,10 @@
+/* Placeholder look; R2 designs the real one. */
+html, body { margin: 0; height: 100%; background: #291006; color: #f6f4f1; font-family: sans-serif; }
+cast-media-player { --progress-color: #f4743b; --playback-logo-image: none; }
+#sonor { position: fixed; right: 0; top: 0; bottom: 0; width: 34%; padding: 24px; box-sizing: border-box; overflow: hidden; }
+#lyrics, #next { list-style: none; margin: 0 0 16px; padding: 0; }
+#lyrics li { font-size: 28px; opacity: 0.5; margin: 6px 0; }
+#lyrics li.active { opacity: 1; color: #f4743b; }
+#lyrics-note { opacity: 0.6; font-size: 20px; }
+#next li { font-size: 18px; opacity: 0.8; display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+#next img { width: 40px; height: 40px; border-radius: 4px; object-fit: cover; }

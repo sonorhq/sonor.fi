@@ -1,0 +1,22 @@
+{
+  "name": "sonor-cast-receiver",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Sonor's Google Cast Web Receiver: protocol spec, fixtures and the emulator spike",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "spike": "vite build && playwright test -c spike/playwright.config.js"
+  },
+  "devDependencies": {
+    "@mattiasbuelens/chromecast-emulator": "0.3.0",
+    "@playwright/test": "1.63.0",
+    "@types/chromecast-caf-receiver": "^6.0.25",
+    "@types/node": "^22.0.0",
+    "typescript": "^7.0.2",
+    "vite": "8.3.6",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,3 +1,4 @@
+import receiverCsp from "./receiver-csp.json";
 import { MAX_STALE_AGE_MS, RETRY_AFTER_FAILURE_MS, type ApiState } from "./state";
 
 export { ApiState } from "./state";
@@ -102,8 +103,34 @@ const CAST_TYPES: Record<string, string> = {
   "watermark.png": "image/png",
 };
 
+// The Custom Web Receiver app (cast-receiver/, copied here by scripts/copy-receiver.mjs): exact file
+// names only, under /cast/receiver/ (production) and /cast/receiver-next/ (the same build, for trying).
+const RECEIVER_TYPES: Record<string, string> = {
+  "": "text/html; charset=utf-8", // index.html, served as the directory
+  "main.js": "text/javascript; charset=utf-8",
+  "main.css": "text/css; charset=utf-8",
+};
+const RECEIVER_DIRS = ["receiver", "receiver-next"];
+// receiver-next tries changes, so only its page carries the CSP (README); pages always revalidate,
+// scripts cache on production only.
+const receiverCache = (dir: string, file: string): string =>
+  file === "" || dir === "receiver-next" ? "no-cache" : "public, max-age=300";
+
 const castAsset = async (request: Request, env: Cloudflare.Env, name: string): Promise<Response> => {
-  const type = Object.hasOwn(CAST_TYPES, name) ? CAST_TYPES[name] : undefined;
+  let type = Object.hasOwn(CAST_TYPES, name) ? CAST_TYPES[name] : undefined;
+  // The skin can change under the same URL, so keep it short-lived.
+  let cacheControl = "public, max-age=3600";
+  let csp: string | undefined;
+  const slash = name.indexOf("/");
+  if (!type && slash > 0) {
+    const dir = name.slice(0, slash);
+    const file = name.slice(slash + 1);
+    if (RECEIVER_DIRS.includes(dir) && Object.hasOwn(RECEIVER_TYPES, file)) {
+      type = RECEIVER_TYPES[file];
+      cacheControl = receiverCache(dir, file);
+      if (dir === "receiver-next" && file === "") csp = receiverCsp.csp;
+    }
+  }
   if (!type) return text("Not found", 404);
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...CORS_HEADERS, Allow: ALLOW } });
   if (!READ_METHODS.includes(request.method)) return text("Method not allowed", 405, { Allow: ALLOW });
@@ -112,9 +139,10 @@ const castAsset = async (request: Request, env: Cloudflare.Env, name: string): P
   return new Response(request.method === "HEAD" ? null : asset.body, {
     headers: {
       "Content-Type": type,
-      // The skin can change under the same URL, so keep it short-lived.
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": cacheControl,
+      "X-Content-Type-Options": "nosniff",
       "Access-Control-Allow-Origin": "*",
+      ...(csp ? { "Content-Security-Policy": csp } : {}),
     },
   });
 };

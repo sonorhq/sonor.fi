@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Spike receiver</title>
+<cast-media-player></cast-media-player>
+<script src="/presentation-polyfill.js"></script>
+<script src="/cast-receiver-emulator.js"></script>
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<script>
+  const NS = 'urn:x-cast:fi.sonor'
+  const context = cast.framework.CastReceiverContext.getInstance()
+  const playerManager = context.getPlayerManager()
+
+  window.received = [] // custom-namespace messages
+  window.loads = [] // LOAD / QUEUE_LOAD requests seen by CAF
+
+  context.addCustomMessageListener(NS, (event) => {
+    window.received.push({ senderId: event.senderId, type: typeof event.data, data: event.data })
+    if (event.data && event.data.type === 'hello') {
+      context.sendCustomMessage(NS, event.senderId, {
+        type: 'ready', v: 1, features: ['queue', 'lyrics'], maxBytes: 60000
+      })
+    }
+  })
+
+  const record = (kind) => (request) => {
+    window.loads.push({
+      kind,
+      customData: request.customData ?? null,
+      mediaCustomData: request.media?.customData ?? null,
+      itemCustomData: (request.items ?? []).map((i) => i.media?.customData ?? null)
+    })
+    return request
+  }
+  playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, record('LOAD'))
+  playerManager.setMessageInterceptor(cast.framework.messages.MessageType.QUEUE_LOAD, record('QUEUE_LOAD'))
+
+  window.audioState = () => {
+    const el = document.querySelector('cast-media-player')?.shadowRoot?.querySelector('video, audio')
+    return el && { src: el.currentSrc, paused: el.paused, currentTime: el.currentTime }
+  }
+  window.queueKeys = () =>
+    (playerManager.getQueueManager().getItems() ?? []).map((i) => i.media?.customData ?? null)
+
+  context.start({ disableIdleTimeout: true })
+</script>

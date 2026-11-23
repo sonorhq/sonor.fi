@@ -561,6 +561,61 @@ describe("other requests", () => {
     expect(points).toHaveLength(0);
   });
 
+  it("serves the Cast receiver app at /cast/receiver/ and /cast/receiver-next/", async () => {
+    const expected: [string, string, string][] = [
+      ["", "text/html; charset=utf-8", "<cast-media-player"],
+      ["main.js", "text/javascript; charset=utf-8", "urn:x-cast:fi.sonor"],
+      ["main.css", "text/css; charset=utf-8", "#lyrics"],
+    ];
+    for (const dir of ["receiver", "receiver-next"]) {
+      for (const [file, type, body] of expected) {
+        const res = await request(`/cast/${dir}/${file}`);
+        expect(res.status).toBe(200);
+        expect(res.headers.get("Content-Type")).toBe(type);
+        // The page is always revalidated; scripts are cached on production only.
+        const revalidate = file === "" || dir === "receiver-next";
+        expect(res.headers.get("Cache-Control")).toBe(revalidate ? "no-cache" : "public, max-age=300");
+        // The policy is on receiver-next's page only, until it is tried on a real device.
+        const csp = res.headers.get("Content-Security-Policy");
+        if (dir === "receiver-next" && file === "") {
+          expect(csp).toContain("default-src 'self'");
+          expect(csp).toContain("script-src 'self' https://www.gstatic.com https://ajax.googleapis.com");
+          expect(csp).toContain("object-src 'none'");
+          expect(csp).toContain("base-uri 'none'");
+        } else {
+          expect(csp).toBeNull();
+        }
+        expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+        expect(await res.text()).toContain(body);
+      }
+    }
+    const head = await request("/cast/receiver/main.js", { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(await head.text()).toBe("");
+    expect((await request("/cast/receiver/", { method: "POST" })).status).toBe(405);
+    expect(points).toHaveLength(0);
+  });
+
+  it("404s everything else under the Cast receiver paths", async () => {
+    for (const path of [
+      "/cast/receiver",
+      "/cast/receiver/index.html",
+      "/cast/receiver/main.js.map",
+      "/cast/receiver/main.js/x",
+      "/cast/receiver/../receiver.css/x",
+      "/cast/receiver/__proto__",
+      "/cast/receiver/constructor",
+      "/cast/receiver-next/nope",
+      "/cast/receiver-next/index.html",
+      "/cast/receiver-old/",
+      "/cast/__proto__/",
+      "/cast/constructor/main.js",
+    ]) {
+      expect((await request(path)).status).toBe(404);
+      expect((await request(path, { method: "OPTIONS" })).status).toBe(404);
+    }
+  });
+
   it("404s unknown Cast paths", async () => {
     for (const path of ["/cast", "/cast/", "/cast/nope.png", "/cast/receiver.css/x", "/cast/preview.html"]) {
       expect((await request(path)).status).toBe(404);
