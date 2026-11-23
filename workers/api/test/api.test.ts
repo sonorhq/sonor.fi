@@ -565,7 +565,7 @@ describe("other requests", () => {
     const expected: [string, string, string][] = [
       ["", "text/html; charset=utf-8", "<cast-media-player"],
       ["main.js", "text/javascript; charset=utf-8", "urn:x-cast:fi.sonor"],
-      ["main.css", "text/css; charset=utf-8", "#lyrics"],
+      ["main.css", "text/css; charset=utf-8", ".lyrics"],
     ];
     for (const dir of ["receiver", "receiver-next"]) {
       for (const [file, type, body] of expected) {
