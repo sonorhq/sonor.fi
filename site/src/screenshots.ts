@@ -10,7 +10,7 @@ export interface Screenshot {
   /** Describes what the screenshot shows; read by screen readers. */
   alt: string;
   ready: boolean;
-  /** The desktop file, 1600 × 1004 (about 16:10). */
+  /** The desktop file, 1600 × 1005 (about 16:10). */
   desktop: string;
   /** The phone shot, 900 × 1950 (9:19.5), shown beside the desktop one when it is ready. */
   phone?: PhoneShot;

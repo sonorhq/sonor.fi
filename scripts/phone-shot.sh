@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# Turns an iPhone screenshot (PNG, 1179 × 2556 or any 9:19.5 size) into the 900 × 1950 WebP that the site shows
-# beside a desktop shot: site/public/screenshots/phone/<name>.webp.
-#
 # Usage: scripts/phone-shot.sh <input.png> [name]
-#   name defaults to the input's file name without its extension.
-#
-# Needs ImageMagick 7 (magick) with WebP support, or ImageMagick 6 (convert). The image is scaled to cover
-# 900 × 1950 and the overflow (a pixel or two for a 9:19.5 phone) is cropped from the centre.
+# Writes site/public/screenshots/phone/<name>.webp: 900 × 1950 sRGB, converted from the iPhone's Display P3.
+# Needs ImageMagick 7 (magick) and an sRGB ICC profile; see README for the details.
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
@@ -25,12 +20,28 @@ if [[ ! -f "$input" ]]; then
   exit 1
 fi
 
-if command -v magick >/dev/null 2>&1; then
-  im=(magick)
-elif command -v convert >/dev/null 2>&1; then
-  im=(convert)
-else
-  echo "ImageMagick is needed (magick or convert, with WebP support)" >&2
+if ! command -v magick >/dev/null 2>&1; then
+  echo "ImageMagick 7 is needed (the magick command, with WebP support)" >&2
+  exit 1
+fi
+
+# The profile the image is converted to. iPhone screenshots are Display P3, and without this transform the
+# colours would come out washed out.
+srgb_icc=${SRGB_ICC:-}
+if [[ -z "$srgb_icc" ]]; then
+  for candidate in \
+    "/System/Library/ColorSync/Profiles/sRGB Profile.icc" \
+    /usr/share/color/icc/colord/sRGB.icc \
+    /usr/share/color/icc/sRGB.icc \
+    /usr/share/ghostscript/iccprofiles/srgb.icc; do
+    if [[ -f "$candidate" ]]; then
+      srgb_icc=$candidate
+      break
+    fi
+  done
+fi
+if [[ -z "$srgb_icc" || ! -f "$srgb_icc" ]]; then
+  echo "no sRGB profile found: set SRGB_ICC to an sRGB .icc file" >&2
   exit 1
 fi
 
@@ -40,15 +51,16 @@ out="$out_dir/$name.webp"
 width=900
 height=1950
 
-read -r src_w src_h < <("${im[@]}" identify -format '%w %h\n' "$input[0]")
+read -r src_w src_h < <(magick identify -format '%w %h\n' "$input[0]")
 # Warn when the source is not close to 9:19.5, since the crop then removes more than a pixel or two.
 if awk -v w="$src_w" -v h="$src_h" 'BEGIN { exit !(h / w < 19.5 / 9 * 0.98 || h / w > 19.5 / 9 * 1.02) }'; then
   echo "warning: ${src_w} × ${src_h} is not 9:19.5; the centre is kept and the rest cropped" >&2
 fi
 
+# The profile transform comes before -strip, which then drops the profiles, so the WebP is plain sRGB.
 mkdir -p "$out_dir"
-"${im[@]}" "$input[0]" -strip -resize "${width}x${height}^" -gravity center -extent "${width}x${height}" \
-  -quality 82 "$out"
+magick "$input[0]" -profile "$srgb_icc" -strip -resize "${width}x${height}^" -gravity center \
+  -extent "${width}x${height}" -quality 82 "$out"
 
 bytes=$(wc -c <"$out")
 echo "wrote $out (${width} × ${height}, $((bytes / 1024)) KB)"
