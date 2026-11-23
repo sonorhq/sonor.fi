@@ -1,0 +1,39 @@
+/* Sonor skin for the Google Cast Styled Media Receiver: documented classes only; images resolve next to this file. */
+.background {
+  background-color: #000000;
+  background-image: url('background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Launch logo; also the idle screen when .splash is not set. */
+.logo {
+  background-color: transparent;
+  background-image: url('logo.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Idle screen: full-frame art with the mark and name baked in. */
+.splash {
+  background-color: #000000;
+  background-image: url('splash.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Small mark over the playback screen (Google's example is 57x57). */
+.watermark {
+  background-image: url('watermark.png');
+  background-size: 57px 57px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Playback progress, accent on TV-safe contrast. */
+.progressBar {
+  background-color: #f4743b;
+}

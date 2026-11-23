@@ -33,6 +33,7 @@ const stub = () => env.API_STATE.getByName("api");
 const points: AnalyticsEngineDataPoint[] = [];
 const testEnv = {
   API_STATE: env.API_STATE,
+  ASSETS: env.ASSETS,
   RELEASE_CHECKS: { writeDataPoint: (p: AnalyticsEngineDataPoint) => points.push(p) },
 } as unknown as Cloudflare.Env;
 
@@ -535,6 +536,39 @@ describe("other requests", () => {
     expect((await request("/v1/health", { method: "HEAD" })).status).toBe(200);
     expect((await request("/v1/health", { method: "POST" })).status).toBe(405);
     expect(points).toHaveLength(0);
+  });
+
+  it("serves the Cast receiver skin with its images", async () => {
+    const css = await request("/cast/receiver.css");
+    expect(css.status).toBe(200);
+    expect(css.headers.get("Content-Type")).toBe("text/css; charset=utf-8");
+    expect(css.headers.get("Access-Control-Allow-Origin")).toBe("*");
+    expect(css.headers.get("Cache-Control")).toBe("public, max-age=3600");
+    expect(await css.text()).toContain("url('splash.png')");
+    for (const name of ["background", "splash", "logo", "watermark"]) {
+      const res = await request(`/cast/${name}.png`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("Content-Type")).toBe("image/png");
+      expect(res.headers.get("Access-Control-Allow-Origin")).toBe("*");
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      expect([...bytes.slice(1, 4)]).toEqual([0x50, 0x4e, 0x47]);
+    }
+    const head = await request("/cast/receiver.css", { method: "HEAD" });
+    expect(head.status).toBe(200);
+    expect(head.headers.get("Content-Type")).toBe("text/css; charset=utf-8");
+    expect(await head.text()).toBe("");
+    expect((await request("/cast/receiver.css", { method: "POST" })).status).toBe(405);
+    expect(points).toHaveLength(0);
+  });
+
+  it("404s unknown Cast paths", async () => {
+    for (const path of ["/cast", "/cast/", "/cast/nope.png", "/cast/receiver.css/x", "/cast/preview.html"]) {
+      expect((await request(path)).status).toBe(404);
+    }
+    for (const path of ["/cast/nope.png", "/cast/__proto__", "/cast/constructor"]) {
+      expect((await request(path, { method: "OPTIONS" })).status).toBe(404);
+      expect((await request(path)).status).toBe(404);
+    }
   });
 
   it("404s everything else", async () => {
