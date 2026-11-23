@@ -57,14 +57,14 @@ export const CORE_FEATURES: Feature[] = [
   {
     id: "devices",
     title: "Play on your other devices",
-    text: "Sonor finds your other Sonor devices on the same network. Control one from your own player: play, pause, skip, seek, volume, shuffle and repeat. Send your queue to another device and it carries on at the same song and second while this one pauses, or bring its queue here. Only your own sessions see each other, everything is encrypted with a key from your login, and nothing leaves your network. Works with Subsonic and Navidrome, not yet Jellyfin or Emby.",
+    text: "Sonor finds your other Sonor devices on the same network. Control one from your own player: play, pause, skip, seek, volume, shuffle and repeat. Send your queue to another device and it carries on at the same song and second while this one pauses, or bring its queue here. Only your own sessions see each other, everything is encrypted with a key from your login, and nothing leaves your network. Works with Subsonic, Navidrome, Jellyfin and Emby servers.",
     where: "macOS · Windows · Linux · iPhone",
     image: {
       src: "/screenshots/features/devices.webp",
       width: 1600,
       height: 1005,
-      alt: "The Devices view in Sonor, listing the other Sonor devices on the network with controls for the one being played.",
-      ready: false,
+      alt: "Sonor on a Mac playing a playlist with the Devices list open, showing an iPhone it can send to, bring from or control; beside it, the iPhone controls the Mac, with the Mac's queue and \"Playing on\" the Mac.",
+      ready: true,
     },
   },
   {
