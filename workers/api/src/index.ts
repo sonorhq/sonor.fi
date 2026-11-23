@@ -111,9 +111,8 @@ const RECEIVER_TYPES: Record<string, string> = {
   "main.css": "text/css; charset=utf-8",
 };
 const RECEIVER_DIRS = ["receiver", "receiver-next"];
-// receiver-next is where changes are tried, so it also carries the Content-Security-Policy (checked
-// against what CAF loads in the emulator run); production gets it once tried on a real device.
-// The page is always revalidated; its scripts are cached on production only.
+// receiver-next tries changes, so only its page carries the CSP (README); pages always revalidate,
+// scripts cache on production only.
 const receiverCache = (dir: string, file: string): string =>
   file === "" || dir === "receiver-next" ? "no-cache" : "public, max-age=300";
 
