@@ -4,3 +4,5 @@ node_modules
 .env
 dist
 .DS_Store
+workers/api/public/cast/receiver/
+workers/api/public/cast/receiver-next/

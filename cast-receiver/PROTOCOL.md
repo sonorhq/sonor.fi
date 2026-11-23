@@ -14,8 +14,11 @@ this channel only carries what the standard messages cannot: the upcoming queue 
   field types, is answered with `error` / `BAD_MESSAGE` (unknown types are never an error).
 - A message is at most 60,000 bytes of UTF-8 (the Cast limit is 64 KB; the rest is headroom).
   The sender must stay under it; the receiver answers a larger one with `error` / `TOO_LARGE`.
-- Text fields (`title`, `artist`, `album`, lyrics lines) are at most 200 characters; the sender
-  cuts longer ones.
+- Text fields (`app`, keys, `title`, `artist`, `album`, `source`, lyrics lines and words) are at
+  most 200 characters; the sender cuts longer ones and the receiver answers `BAD_MESSAGE` to a
+  message with a longer one. Other `BAD_MESSAGE` cases: more than 5 `next` items, `index` not below
+  `total`, an `image` that is not an `https://` URL, `words` whose length differs from `lines`, a
+  missing `v`, `type` or required field.
 
 ## Media customData
 

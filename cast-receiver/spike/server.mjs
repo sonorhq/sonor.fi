@@ -18,8 +18,24 @@ const routes = {
   '/cast-receiver-emulator.js': [join(distDir, 'cast-receiver-emulator.js'), 'text/javascript']
 }
 
+// The production build (dist/), with the emulator scripts injected before the CAF SDK: the real
+// page never carries them.
+const dist = join(here, '..', 'dist')
+const appTypes = { 'main.js': 'text/javascript', 'main.css': 'text/css' }
+const caf = '<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/'
+
 createServer(async (req, res) => {
-  const route = routes[new URL(req.url, 'http://x').pathname]
+  const { pathname } = new URL(req.url, 'http://x')
+  if (pathname.startsWith('/app/')) {
+    const file = pathname.slice('/app/'.length) || 'index.html'
+    if (file !== 'index.html' && !(file in appTypes)) return void res.writeHead(404).end()
+    let body = await readFile(join(dist, file), 'utf8')
+    if (file === 'index.html') {
+      body = body.replace(caf, '<script src="/presentation-polyfill.js"></script><script src="/cast-receiver-emulator.js"></script>' + caf)
+    }
+    return void res.writeHead(200, { 'content-type': appTypes[file] ?? 'text/html' }).end(body)
+  }
+  const route = routes[pathname]
   if (!route) {
     res.writeHead(404).end()
     return

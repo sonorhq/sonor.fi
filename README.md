@@ -4,6 +4,7 @@ The public side of [Sonor](https://github.com/sonorhq/sonor), a music player for
 
 - `site/`: the website for sonor.fi, a Vike (React) app server-rendered on the `sonor-fi` Worker. The pages are in `site/pages/`, the static files in `site/public/`. `site/src/edge.ts` redirects http to https and www to the apex, and adds the security headers, before Vike renders. The latest release (betas included) is read from the GitHub API and cached for ten minutes; the download choice follows the visitor's OS.
 - `workers/api/`: the API Worker for api.sonor.fi (`sonor-api`). Today it answers the app's update check.
+- `cast-receiver/`: the Cast Custom Web Receiver app (TypeScript, Vite), its protocol spec and tests; the API Worker serves its build at `/cast/receiver/`.
 
 This repo is public so the API's data handling can be audited: read [`workers/api/README.md`](workers/api/README.md) for what is recorded and what isn't, and [`workers/api/src`](workers/api/src) for the code that does it.
 Public CI runs here for free, and the Cloudflare secrets only reach the protected `production` environment on `main`.
