@@ -2,6 +2,8 @@
 // on the way are in COMING. An entry's image sits above its text and shows only when `ready` is true, so
 // a picture can be added before its file exists (like the app screenshots in screenshots.ts).
 
+import type { PhoneShot } from "./shots";
+
 export interface FeatureImage {
   /** The file under public/screenshots/, WebP. */
   src: string;
@@ -11,6 +13,8 @@ export interface FeatureImage {
   /** Describes what the picture shows; read by screen readers. */
   alt: string;
   ready: boolean;
+  /** A phone shot beside the picture, when the feature has one; it shows only when its own `ready` is true. */
+  phone?: PhoneShot;
 }
 
 export interface Feature {
@@ -52,6 +56,11 @@ export const CORE_FEATURES: Feature[] = [
       height: 1000,
       alt: "The Downloads tab of Your Library in Sonor, listing the albums and songs kept on the device for offline play.",
       ready: true,
+      phone: {
+        src: "/screenshots/phone/offline.webp",
+        alt: "The Downloads tab of the library on the phone, with two albums downloaded.",
+        ready: true,
+      },
     },
   },
   {
@@ -90,6 +99,11 @@ export const CORE_FEATURES: Feature[] = [
       height: 1005,
       alt: "Sonor's lyrics view, with the line being sung highlighted as the song plays.",
       ready: true,
+      phone: {
+        src: "/screenshots/phone/lyrics.webp",
+        alt: "Synced lyrics on the phone, the current line highlighted.",
+        ready: true,
+      },
     },
   },
   {
@@ -149,6 +163,11 @@ export const OCTO_FEATURES: Feature[] = [
       height: 1005,
       alt: "Sonor's Charts page for the United States, with the Top songs chart playing and the play queue open on the right.",
       ready: true,
+      phone: {
+        src: "/screenshots/phone/discovery.webp",
+        alt: "Charts on the phone: top songs with genre and country filters.",
+        ready: true,
+      },
     },
   },
   {
@@ -188,6 +207,11 @@ export const OCTO_FEATURES: Feature[] = [
       height: 1005,
       alt: "An artist page in Sonor with the Popular list of top songs.",
       ready: true,
+      phone: {
+        src: "/screenshots/phone/lyrics-top.webp",
+        alt: "An artist page on the phone with its most played songs from Last.fm.",
+        ready: true,
+      },
     },
   },
 ];

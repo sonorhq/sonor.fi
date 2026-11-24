@@ -14,17 +14,23 @@ describe("the feature copy", () => {
   });
 
   it("uses no em or en dashes, in the features or the coming list", () => {
-    const copy = [...ALL.flatMap((feature) => [feature.title, feature.text, feature.where ?? "", feature.image?.alt ?? ""]), ...COMING];
+    const copy = [
+      ...ALL.flatMap((feature) => [feature.title, feature.text, feature.where ?? "", feature.image?.alt ?? "", feature.image?.phone?.alt ?? ""]),
+      ...COMING,
+    ];
     for (const line of copy) {
       expect(line).not.toMatch(/[–—]/);
     }
   });
 
-  it("keeps every picture's alt text and source", () => {
+  it("keeps every picture's alt text and source, and a phone shot's too", () => {
     for (const feature of ALL) {
       if (!feature.image) continue;
       expect(feature.image.alt.trim()).not.toBe("");
       expect(feature.image.src).toMatch(/^\/[^ ]+\.webp$/);
+      if (!feature.image.phone) continue;
+      expect(feature.image.phone.alt.trim()).not.toBe("");
+      expect(feature.image.phone.src).toMatch(/^\/screenshots\/phone\/[^ ]+\.webp$/);
     }
   });
 
