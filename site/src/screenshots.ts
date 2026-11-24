@@ -23,6 +23,11 @@ export const SCREENSHOTS: Screenshot[] = [
     alt: "Sonor's home screen: quick picks and album grids for recently played and recently added music, with the play queue open on the right.",
     ready: true,
     desktop: "/screenshots/desktop-home.webp",
+    phone: {
+      src: "/screenshots/phone/home.webp",
+      alt: "Home on the phone: quick picks and recently played albums.",
+      ready: true,
+    },
   },
   {
     id: "discover",
@@ -30,6 +35,11 @@ export const SCREENSHOTS: Screenshot[] = [
     alt: "Sonor's Discover page with an Octo server: mixes made for you, artist stations and charts, beside your own library.",
     ready: true,
     desktop: "/screenshots/desktop-discover.webp",
+    phone: {
+      src: "/screenshots/phone/discover.webp",
+      alt: "Discover on the phone: mixes made for you and stations.",
+      ready: true,
+    },
   },
   {
     id: "nowplaying",
@@ -37,5 +47,10 @@ export const SCREENSHOTS: Screenshot[] = [
     alt: "A playlist page in Sonor with the playing song highlighted, and the Now Playing panel on the right with its cover.",
     ready: true,
     desktop: "/screenshots/desktop-nowplaying.webp",
+    phone: {
+      src: "/screenshots/phone/nowplaying.webp",
+      alt: "Now Playing on the phone, with the cover and the playback controls.",
+      ready: true,
+    },
   },
 ];
