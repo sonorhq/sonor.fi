@@ -11,7 +11,7 @@ Public CI runs here for free, and the Cloudflare secrets only reach the protecte
 
 ## Issues
 
-Open issues here only for the public website and the public API. The app itself, and everything else about Sonor, lives in [sonorhq/sonor-src](https://github.com/sonorhq/sonor-src).
+Open issues here only for the public website and the public API. For the app itself, and anything else about Sonor, use [sonorhq/sonor](https://github.com/sonorhq/sonor).
 
 ## Development
 
