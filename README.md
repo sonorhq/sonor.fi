@@ -39,4 +39,6 @@ The website's build writes `site/dist/`, which `wrangler deploy` reads; run `pnp
 
 ## Licence
 
-Not chosen yet.
+The source code is under the MIT licence ([`LICENSE`](LICENSE)): the website, the API Worker and the Cast receiver with its protocol spec.
+
+The Sonor name and logo, the screenshots and the website's text are not: all rights reserved, as listed in [`LICENSE-CONTENT.md`](LICENSE-CONTENT.md). The Sonor app itself is proprietary and is not in this repository.
