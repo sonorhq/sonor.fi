@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <article className="narrow-page policy">
       <h1>Privacy policy</h1>
-      <p className="updated">Last updated: 22 November 2026</p>
+      <p className="updated">Last updated: 23 November 2026</p>
 
       <p>
         Sonor is a music player for servers you choose. It has no accounts and no ads, and the app carries no
@@ -31,14 +31,14 @@ export default function Page() {
 
       <h2>The update check</h2>
       <p>
-        The desktop (macOS, Windows, Linux) and Android builds we publish ask <code>api.sonor.fi</code> for the
+        The desktop (macOS, Windows, Linux), Android and iPhone builds we publish ask <code>api.sonor.fi</code> for the
         latest release a minute after they start, then once a day while they run, and when you press Check. iPhone
-        builds don't check, because TestFlight handles their updates.
+        builds are told about the latest TestFlight build, which TestFlight installs, and never fall back to GitHub.
       </p>
       <p>Each check sends:</p>
       <ul>
         <li>the app version and the commit it was built from;</li>
-        <li>the operating system, the processor type, and whether it's desktop or Android;</li>
+        <li>the operating system, the processor type, and whether it's desktop, Android or iPhone;</li>
         <li>the build's expiry date, for betas;</li>
         <li>
           your language, as a short tag such as <code>ca-ES</code>.
@@ -62,8 +62,8 @@ export default function Page() {
         off Settings › About › Check for updates, and nothing is sent.
       </p>
       <p>
-        If <code>api.sonor.fi</code> doesn't answer, the app asks GitHub's public API for the releases instead, without
-        any of the values above. When you press Update, the new version is downloaded from GitHub. GitHub sees your IP
+        If <code>api.sonor.fi</code> doesn't answer, desktop and Android builds ask GitHub's public API for the releases instead, without
+        any of the values above. On those builds, when you press Update, the new version is downloaded from GitHub. GitHub sees your IP
         address, as it does for any visitor.
       </p>
 

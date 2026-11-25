@@ -156,7 +156,7 @@ describe("the rendered pages", () => {
   it("renders the full privacy policy, not a placeholder", async () => {
     const { html } = await render("/privacy");
     expect(html).not.toMatch(/coming soon/i);
-    expect(html).toContain("Last updated: 22 November 2026");
+    expect(html).toContain("Last updated: 23 November 2026");
     for (const heading of ["Who we are", "The update check", "How long we keep it", "Your rights", "Children", "Changes", "Contact"]) {
       expect(html).toContain(`<h2>${heading}</h2>`);
     }
