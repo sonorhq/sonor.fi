@@ -35,7 +35,7 @@ Each value keeps only `[A-Za-z0-9._:+-]` characters, is cut to 40. An empty `X-S
 pnpm exec wrangler secret put IOS_PUBLISH_TOKEN
 ```
 
-The store link the answer carries is `IOS_STORE_URL` in `wrangler.jsonc`'s `vars`; it's still the `REPLACE_ME` placeholder until the TestFlight code is set there.
+The store link the answer carries is `IOS_STORE_URL` in `wrangler.jsonc`'s `vars`, the Public group's TestFlight link.
 
 `GET /cast/receiver.css` (and the images it references, `/cast/background.png`, `splash.png`, `logo.png`, `watermark.png`) is Sonor's skin for the Google Cast Styled Media Receiver; its Skin URL in the Cast console is `https://api.sonor.fi/cast/receiver.css`. The files live in `public/cast/` and are served by the Worker with `Access-Control-Allow-Origin: *` and `Cache-Control: public, max-age=3600`. Nothing is recorded. Other `/cast/` paths get `404`.
 

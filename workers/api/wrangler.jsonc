@@ -6,7 +6,7 @@
   "workers_dev": false,
   "routes": [{ "pattern": "api.sonor.fi", "custom_domain": true }],
   // The link iOS users get the build from. REPLACE_ME is the TestFlight code the owner supplies.
-  "vars": { "IOS_STORE_URL": "https://testflight.apple.com/join/REPLACE_ME" },
+  "vars": { "IOS_STORE_URL": "https://testflight.apple.com/join/4wTvkRjG" },
   // Requests carry IPs: no request logs, ever.
   "observability": { "enabled": false },
   "durable_objects": {
