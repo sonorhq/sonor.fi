@@ -12,6 +12,7 @@
   --safe-y: 5vh;
 }
 [hidden] { display: none !important; }
+.sprite { position: absolute; width: 0; height: 0; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
 body { color: var(--text); font-family: Roboto, system-ui, "Helvetica Neue", Arial, sans-serif; }
 
@@ -45,7 +46,7 @@ body { color: var(--text); font-family: Roboto, system-ui, "Helvetica Neue", Ari
   gap: 2.6vh;
 }
 #idle .mark { width: 24vh; height: 24vh; display: block; }
-#idle .wordmark { margin: 0; font-size: 8vh; font-weight: 600; line-height: 1; letter-spacing: .02em; }
+#idle .wordmark { display: block; width: 30.5vh; height: 6vh; fill: var(--text); }
 #idle .ready { margin: 1vh 0 0; font-size: 3vh; color: var(--muted); letter-spacing: .06em; }
 
 /* Playing: the side (cover, title, progress, up next) on the left, the lyrics on the right. */
@@ -125,8 +126,9 @@ body { color: var(--text); font-family: Roboto, system-ui, "Helvetica Neue", Ari
 .next .t { display: block; font-size: 2.8vh; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .next .a { display: block; font-size: 2.2vh; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Lyrics: the box runs the full height, and the track moves so the current line sits at 40%. */
-.lyrics { position: absolute; top: 0; bottom: 0; left: 37vw; right: 0; overflow: hidden; }
+/* Lyrics: the box runs the full height, and the track moves so the current line sits at 40%. The band the
+ * brand takes is clipped, not moved, so the lines keep their place. */
+.lyrics { position: absolute; top: 0; bottom: 0; left: 37vw; right: 0; overflow: hidden; clip-path: inset(calc(var(--safe-y) + 4.2vh) 0 0 0); }
 .track {
   position: absolute;
   top: 0;
@@ -154,6 +156,19 @@ body { color: var(--text); font-family: Roboto, system-ui, "Helvetica Neue", Ari
 /* Unsynced lyrics: all lines read alike, and the track moves with the song's progress, slowly. */
 #screen[data-mode="plain"] .track { transition: transform .4s linear; }
 #screen[data-mode="plain"] .line { color: var(--text); opacity: .85; }
+
+/* The brand: the mark and the wordmark in the top right corner, inside the safe area, on the playing screens.
+ * The lyrics are clipped below it (see .lyrics). */
+.brand {
+  position: absolute;
+  top: var(--safe-y);
+  right: var(--safe-x);
+  display: flex;
+  align-items: center;
+  gap: 1.1vh;
+}
+.brand-mark { display: block; width: 5.2vh; height: 3.2vh; fill: var(--accent); }
+.brand-word { display: block; width: 16.3vh; height: 3.2vh; fill: var(--text); opacity: .6; }
 
 /* No lyrics: the cover large on the left, its details and up next on the right. */
 #screen[data-mode="none"] #playing {
