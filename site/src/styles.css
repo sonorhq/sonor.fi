@@ -121,9 +121,8 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .feature-grid, .shot-wide, .shot-cards, .bands { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
 /* A flagship still waiting for its picture spans the row, so the eight short cards fill even rows. */
 .feature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-/* The global .wide caps width at 62rem for the coming list; the card spans the whole row instead. */
-.feature-grid > li.wide { grid-column: 1 / -1; max-width: none; }
-.feature-grid > li.wide p { max-width: 70ch; }
+.feature-grid > li.span-row { grid-column: 1 / -1; }
+.feature-grid > li.span-row p { max-width: 70ch; }
 .shot-wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .shot-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .bands { margin-top: 1rem; }
