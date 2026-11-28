@@ -1,0 +1,18 @@
+# Sonor
+
+> Sonor is a music player for your own Subsonic, Navidrome, Jellyfin or Emby server, on macOS, Windows, Linux, Android and iPhone, with music discovery when the server has a discovery provider. It is in public beta.
+
+Sonor plays the library on your server, with offline downloads, gapless playback, synced lyrics, CarPlay and Android Auto. With a discovery provider on the server (Octo or Aurral today), it also shows mixes, charts and music you don't have yet, with endless stations on Octo, and can ask your server to add it to your library. Sonor never downloads music from the internet itself.
+
+## Pages
+
+- [Home](https://sonor.fi/): features, screenshots and downloads for every platform
+- [Music discovery](https://sonor.fi/discover): how discovery works, what you need, and how adding music to your library works
+- [Privacy policy](https://sonor.fi/privacy): what the app and this website send, and where
+
+## Elsewhere
+
+- [Releases](https://github.com/sonorhq/sonor/releases): every build, with checksums and release notes
+- [Report a bug](https://github.com/sonorhq/sonor/issues): issues for the app
+- [Octo](https://github.com/winters27/octo): an extension for Navidrome that adds discovery
+- [Aurral](https://github.com/lklynet/aurral): a music server with its own discovery
