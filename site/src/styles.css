@@ -154,12 +154,13 @@ footer code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; 
 .narrow-page h1 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem); letter-spacing: -.02em; margin: 0 0 1rem; }
 .narrow-page p { color: var(--muted); }
 .narrow-page a { color: var(--accent); }
-.policy { margin: 0 auto; padding: clamp(2rem, 6vw, 4rem) 16px 0; max-width: 40rem; }
-.policy h2 { font-size: 1.375rem; line-height: 1.25; margin: 2.5rem 0 .5rem; }
-.policy h3 { font-size: 1.0625rem; font-weight: 620; margin: 1.5rem 0 .25rem; }
-.policy p, .policy li { color: var(--muted); text-wrap: pretty; }
+.policy, .doc { margin: 0 auto; padding: clamp(2rem, 6vw, 4rem) 16px 0; max-width: 40rem; }
+.policy h2, .doc h2 { font-size: 1.375rem; line-height: 1.25; margin: 2.5rem 0 .5rem; }
+.policy h3, .doc h3 { font-size: 1.0625rem; font-weight: 620; margin: 1.5rem 0 .25rem; }
+.policy p, .policy li, .doc p, .doc li { color: var(--muted); text-wrap: pretty; }
 .policy strong { color: var(--text); font-weight: 600; }
-.policy ul { padding-left: 1.25rem; }
-.policy li + li { margin-top: .35rem; }
+.policy ul, .doc ul { padding-left: 1.25rem; }
+.policy li + li, .doc li + li { margin-top: .35rem; }
 .policy code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em; color: var(--text); }
 .policy .updated { color: var(--faint); font-size: .875rem; margin-top: -.5rem; }
+.doc .feature-pic { margin: 1.5rem 0; }
