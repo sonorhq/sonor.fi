@@ -50,7 +50,7 @@ describe("submitToIndexNow", () => {
   it("posts the body to the endpoint and reports the status", async () => {
     const fetchImpl = fakeFetch(async () => new Response(null, { status: 200 }));
     const result = await submitToIndexNow(SAMPLE, fetchImpl);
-    expect(result).toBe("IndexNow answered 200 for 2 URLs");
+    expect(result).toBe("IndexNow accepted 2 URLs (200)");
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe(ENDPOINT);
@@ -66,10 +66,27 @@ describe("submitToIndexNow", () => {
     expect(result).toMatch(/^IndexNow not reached/);
   });
 
+  it("accepts a 202 as well", async () => {
+    const fetchImpl = fakeFetch(async () => new Response(null, { status: 202 }));
+    expect(await submitToIndexNow(SAMPLE, fetchImpl)).toBe("IndexNow accepted 2 URLs (202)");
+  });
+
+  it("names the cause of a 403, a 422 and a 429", async () => {
+    const cases: [number, string][] = [
+      [403, "the key file was not found or does not match"],
+      [422, "a URL does not belong to the host"],
+      [429, "too many requests"],
+    ];
+    for (const [status, hint] of cases) {
+      const fetchImpl = fakeFetch(async () => new Response(null, { status }));
+      expect(await submitToIndexNow(SAMPLE, fetchImpl)).toBe(`IndexNow rejected the request (${status}): ${hint}`);
+    }
+  });
+
   it("resolves, without throwing, on a server error", async () => {
     const fetchImpl = fakeFetch(async () => new Response(null, { status: 500 }));
     const result = await submitToIndexNow(SAMPLE, fetchImpl);
-    expect(result).toBe("IndexNow answered 500 for 2 URLs");
+    expect(result).toBe("IndexNow rejected the request (500): unexpected answer");
   });
 
   it("sends nothing for an empty sitemap", async () => {

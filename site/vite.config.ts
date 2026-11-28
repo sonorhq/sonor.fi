@@ -5,7 +5,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import vike from "vike/plugin";
 import { defineConfig, type Plugin } from "vite";
-import { routeOf, sitemapXml } from "./src/sitemap";
+import { routeOf, sitemapXml } from "./src/sitemap.ts";
 
 // The date of the last commit touching these paths; today when git has none (a new page, no git).
 function lastCommitDate(root: string, paths: string[]): string {
@@ -16,7 +16,11 @@ function lastCommitDate(root: string, paths: string[]): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-const SHARED_CONTENT = ["src/features.ts", "src/screenshots.ts", "src/components"];
+// The files outside its own folder that each page's content comes from, so lastmod moves only with that page.
+const PAGE_CONTENT: Record<string, string[]> = {
+  "/": ["src/features.ts", "src/screenshots.ts", "src/shots.ts", "src/components"],
+  "/discover": ["src/features.ts", "src/components/Features.tsx", "src/components/ShotPair.tsx"],
+};
 
 // Writes sitemap.xml into the client build from pages/, so a new page is listed with no hand edit.
 function sitemap(): Plugin {
@@ -29,7 +33,7 @@ function sitemap(): Plugin {
         .map((f) => `pages/${f.split("\\").join("/")}`)
         .flatMap((file) => {
           const path = routeOf(file);
-          return path === null ? [] : [{ path, lastmod: lastCommitDate(root, [file.slice(0, file.lastIndexOf("/")), ...SHARED_CONTENT]) }];
+          return path === null ? [] : [{ path, lastmod: lastCommitDate(root, [file.slice(0, file.lastIndexOf("/")), ...(PAGE_CONTENT[path] ?? [])]) }];
         });
       this.emitFile({ type: "asset", fileName: "sitemap.xml", source: sitemapXml(entries) });
     },

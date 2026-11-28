@@ -6,6 +6,14 @@ export const HOST = "sonor.fi";
 export const ENDPOINT = "https://api.indexnow.org/indexnow";
 
 // Only the site's own URLs go to IndexNow; the sitemap is ours, but a stray foreign <loc> must not be sent.
+export const NO_URLS = "no URLs in the sitemap; nothing sent";
+
+// What each refusal means, so the workflow annotation says what to look at.
+const HINTS: Record<number, string> = {
+  403: "the key file was not found or does not match",
+  422: "a URL does not belong to the host",
+  429: "too many requests",
+};
 export function urlsFromSitemap(xml: string): string[] {
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1].trim());
   return locs.filter((loc) => {
@@ -26,14 +34,14 @@ export function indexNowBody(urls: string[]) {
   };
 }
 
-// Never throws: a failed ping must not fail the deploy that calls it, so every error becomes the returned text.
+// Never throws: a failed ping must not fail the deploy that calls it, so every outcome becomes the returned text.
 export async function submitToIndexNow(
   xml: string,
   fetchImpl: typeof fetch = fetch,
   timeoutMs = 15000,
 ): Promise<string> {
   const urls = urlsFromSitemap(xml);
-  if (urls.length === 0) return "no URLs in the sitemap; nothing sent";
+  if (urls.length === 0) return NO_URLS;
   try {
     const response = await fetchImpl(ENDPOINT, {
       method: "POST",
@@ -41,7 +49,10 @@ export async function submitToIndexNow(
       body: JSON.stringify(indexNowBody(urls)),
       signal: AbortSignal.timeout(timeoutMs),
     });
-    return `IndexNow answered ${response.status} for ${urls.length} URLs`;
+    if (response.status === 200 || response.status === 202) {
+      return `IndexNow accepted ${urls.length} URLs (${response.status})`;
+    }
+    return `IndexNow rejected the request (${response.status}): ${HINTS[response.status] ?? "unexpected answer"}`;
   } catch (error) {
     return `IndexNow not reached: ${error instanceof Error ? error.message : String(error)}`;
   }

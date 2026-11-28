@@ -1,4 +1,4 @@
-// The sitemap's rules, kept free of node imports so the Worker bundle and the build can both use them.
+// The sitemap's rules, with no node imports so vite.config.ts and the tests can share them.
 // Pages are found from the folders (Vike's filesystem routing); a page that sets `route` in its config
 // would need an entry by hand.
 
