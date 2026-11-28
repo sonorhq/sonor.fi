@@ -133,7 +133,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("<h2>Made for listening</h2>");
     expect(html).toContain("<h3>Offline downloads</h3>");
     expect(html).toContain("<h3>Play on your other devices</h3>");
-    expect(html).toContain("/screenshots/features/devices.webp");
+    expect(html).not.toContain("/screenshots/features/devices.webp");
     expect(html).toContain("<h2>Discover new music</h2>");
     expect(html).toContain("Discovery needs a discovery provider on your server");
     expect(html).toContain("<h3>Add music to your library</h3>");
@@ -147,6 +147,13 @@ describe("the rendered pages", () => {
     expect(html).toContain("/screenshots/features/discovery.webp");
     expect(html).toContain("The Sonor app icon in six accent colours");
     expect(html).toContain("/screenshots/desktop-nowplaying.webp");
+    for (const file of [
+      "/screenshots/desktop-home.webp", "/screenshots/desktop-discover.webp",
+      "/screenshots/phone/home.webp", "/screenshots/phone/discover.webp", "/screenshots/phone/nowplaying.webp",
+      "/screenshots/phone/discovery.webp", "/screenshots/phone/lyrics-top.webp", "/screenshots/phone/search.webp",
+      "/screenshots/features/lyrics-top.webp", "/screenshots/features/search.webp", "/screenshots/features/acquire.webp",
+    ]) expect(html).toContain(`src="${file}"`);
+    expect(html).toContain("The same player on macOS, Windows, Linux, Android and iPhone, talking straight to your server.");
   });
 
   it("puts the keyword line in the only h1, under the logo", async () => {

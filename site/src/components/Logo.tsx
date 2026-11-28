@@ -1,5 +1,5 @@
 // The one place the logo is drawn: the kit's Onada bars and outlined wordmark, inline so the hero bars can
-// wave (wave.css; static under reduced motion).
+// wave (wave.css; static under reduced motion). The header shows the static mark and wordmark.
 import "../wave.css";
 import { TILE_PATH } from "./tile";
 import { WORDMARK_PATH } from "./wordmark";
@@ -22,13 +22,22 @@ function Bars({ animated }: { animated: boolean }) {
   );
 }
 
-export function Lockup() {
+/** The mark alone with waving bars, above the hero heading (static under reduced motion). */
+export function WaveMark() {
   return (
-    <svg className="lockup-img" viewBox="-24 -24 586.12 565" width={586} height={565} role="img" aria-label="Sonor">
-      <g transform="translate(-74.19,-193.25) scale(6.86499)">
+    <svg className="wave-mark" viewBox="0 0 100 100" width={100} height={100} aria-hidden="true">
+      <g transform="translate(-0.73,-0.73) scale(1.01452)">
         <Bars animated />
       </g>
-      <path d={WORDMARK_PATH} fill="#F6F4F1" transform="translate(-3.96,472) scale(0.20833)" />
+    </svg>
+  );
+}
+
+/** The outlined wordmark, cropped to its own bounds (538.12 x 104.17 at the kit's scale). */
+export function Wordmark() {
+  return (
+    <svg className="wordmark" viewBox="0 0 538.12 104.17" width={538} height={104} aria-hidden="true">
+      <path d={WORDMARK_PATH} fill="#F6F4F1" transform="translate(-3.96,102.08) scale(0.20833)" />
     </svg>
   );
 }

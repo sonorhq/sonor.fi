@@ -1,30 +1,13 @@
-import { SCREENSHOTS, type Screenshot } from "../screenshots";
+import { SCREENSHOTS } from "../screenshots";
 import { readyPhone } from "../shots";
 import { ShotPair } from "./ShotPair";
 
 // Sizes of the files in public/screenshots/, so the browser reserves the space before they load.
 const DESKTOP = { width: 1600, height: 1005 };
 
-/** One figure per ready entry: the desktop shot, the phone shot beside it when there is one, and a caption. */
-export function Screenshots({ shots = SCREENSHOTS }: { shots?: Screenshot[] }) {
-  return (
-    <div className="screens">
-      {shots.filter((shot) => shot.ready).map((shot) => (
-        <figure key={shot.id} className="shot">
-          <ShotPair phone={readyPhone(shot.phone)}>
-            <img
-              className="shot-desk"
-              src={shot.desktop}
-              width={DESKTOP.width}
-              height={DESKTOP.height}
-              loading="lazy"
-              decoding="async"
-              alt={shot.alt}
-            />
-          </ShotPair>
-          <figcaption>{shot.caption}</figcaption>
-        </figure>
-      ))}
-    </div>
-  );
+/** One entry of screenshots.ts as a picture, by id; nothing until the entry is ready. */
+export function ScreenshotStage({ id, priority, shots = SCREENSHOTS }: { id: string; priority?: boolean; shots?: typeof SCREENSHOTS }) {
+  const shot = shots.find((entry) => entry.id === id);
+  if (!shot?.ready) return null;
+  return <ShotPair desktop={{ src: shot.desktop, alt: shot.alt, ...DESKTOP }} phone={readyPhone(shot.phone)} caption={shot.caption} priority={priority} />;
 }

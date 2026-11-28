@@ -6,8 +6,8 @@ export const SITE = "https://sonor.fi";
 
 // The files outside its own folder that each page's content comes from, so lastmod moves only with that page.
 export const PAGE_CONTENT: Record<string, string[]> = {
-  "/": ["src/features.ts", "src/screenshots.ts", "src/shots.ts", "src/components"],
-  "/discover": ["src/features.ts", "src/components/Features.tsx", "src/components/ShotPair.tsx", "src/shots.ts"],
+  "/": ["src/features.ts", "src/screenshots.ts", "src/shots.ts", "src/lightbox.ts", "src/components"],
+  "/discover": ["src/features.ts", "src/components/Features.tsx", "src/components/ShotPair.tsx", "src/components/Zoomable.tsx", "src/shots.ts"],
 };
 
 // `pages/privacy/+Page.tsx` is `/privacy`; folders starting with `_` (such as `_error`) are not public pages.

@@ -1,6 +1,7 @@
 // The feature copy of the home page. Each claim here is something the app does today; the things still
-// on the way are in COMING. An entry's image sits above its text and shows only when `ready` is true, so
-// a picture can be added before its file exists (like the app screenshots in screenshots.ts).
+// on the way are in COMING. An entry's picture shows only when `ready` is true, so a picture can be added
+// before its file exists (like the app screenshots in screenshots.ts). Where the picture goes depends on the
+// layout: a flagship row, a card or a text band.
 
 import type { PhoneShot } from "./shots";
 
@@ -28,6 +29,10 @@ export interface Feature {
   visual?: "accent-icons";
   /** A discovery feature only one provider gives, e.g. "Needs Octo". */
   needs?: string;
+  /** Shown as a large row with its picture on the home page; the others go to the compact grid. */
+  flagship?: boolean;
+  /** A discovery feature shown as a wide card, two across. */
+  wide?: boolean;
 }
 
 /** The accent presets shown on the accent block, with the brand kit's dark tile for each (docs/brand/README.md). */
@@ -45,6 +50,11 @@ export function readyImage(feature: Feature): FeatureImage | undefined {
   return feature.image?.ready ? feature.image : undefined;
 }
 
+/** A flagship needs its picture: without one it falls back to the grid. */
+export function isFlagship(feature: Feature): boolean {
+  return Boolean(feature.flagship && readyImage(feature));
+}
+
 /** What Sonor does on any server it can connect to. */
 export const CORE_FEATURES: Feature[] = [
   {
@@ -52,15 +62,16 @@ export const CORE_FEATURES: Feature[] = [
     title: "Offline downloads",
     text: "Keep albums, playlists and songs on the device and play them with no connection.",
     where: "Desktop · Android · iPhone",
+    flagship: true,
     image: {
       src: "/screenshots/features/offline.webp",
       width: 1600,
-      height: 1000,
-      alt: "The Downloads tab of Your Library in Sonor, listing the albums and songs kept on the device for offline play.",
+      height: 1005,
+      alt: "The Downloads tab of Your Library in Sonor, listing the albums and a playlist kept on the device for offline play.",
       ready: true,
       phone: {
         src: "/screenshots/phone/offline.webp",
-        alt: "The Downloads tab of the library on the phone, with two albums downloaded.",
+        alt: "The Downloads tab of the library on the phone, listing four albums and a playlist kept on the device.",
         ready: true,
       },
     },
@@ -70,12 +81,33 @@ export const CORE_FEATURES: Feature[] = [
     title: "Play on your other devices",
     text: "Sonor finds your other Sonor devices on the same network. Control one from your own player: play, pause, skip, seek, volume, shuffle and repeat. Send your queue to another device and it carries on at the same song and second while this one pauses, or bring its queue here. Only your own sessions see each other, everything is encrypted with a key from your login, and nothing leaves your network. Works with Subsonic, Navidrome, Jellyfin and Emby servers.",
     where: "macOS · Windows · Linux · Android · iPhone",
+    flagship: true,
+    // The picture waits for a retake without personal names; the entry stays so the file can drop in.
     image: {
       src: "/screenshots/features/devices.webp",
       width: 1600,
       height: 1005,
       alt: "Sonor on a Mac playing a playlist with the Devices list open, showing an iPhone it can send to, bring from or control; beside it, the iPhone controls the Mac, with the Mac's queue and \"Playing on\" the Mac.",
+      ready: false,
+    },
+  },
+  {
+    id: "lyrics",
+    title: "Synced lyrics",
+    text: "Lyrics follow the line being sung. If your server has none, Sonor can look them up on LRCLIB, and you can switch that off.",
+    where: "Everywhere",
+    flagship: true,
+    image: {
+      src: "/screenshots/features/lyrics.webp",
+      width: 1600,
+      height: 1005,
+      alt: "Sonor's Lyrics panel beside an album page, with the line being sung highlighted word by word and the lines further away blurred.",
       ready: true,
+      phone: {
+        src: "/screenshots/phone/lyrics.webp",
+        alt: "Synced lyrics on the phone, with the line being sung highlighted and the lines further away blurred.",
+        ready: true,
+      },
     },
   },
   {
@@ -83,30 +115,6 @@ export const CORE_FEATURES: Feature[] = [
     title: "Gapless playback",
     text: "Albums and continuous mixes run straight through, with no silence between tracks.",
     where: "Everywhere",
-  },
-  {
-    id: "cache",
-    title: "Songs ahead",
-    text: "The next songs in the queue are fetched in advance, so they start without a wait. You choose how many and how much space they use, and Sonor fetches fewer on mobile data.",
-    where: "Everywhere",
-  },
-  {
-    id: "lyrics",
-    title: "Synced lyrics",
-    text: "Lyrics follow the line being sung. If your server has none, Sonor can look them up on LRCLIB, and you can switch that off.",
-    where: "Everywhere",
-    image: {
-      src: "/screenshots/features/lyrics.webp",
-      width: 1600,
-      height: 1005,
-      alt: "Sonor's lyrics view, with the line being sung highlighted as the song plays.",
-      ready: true,
-      phone: {
-        src: "/screenshots/phone/lyrics.webp",
-        alt: "Synced lyrics on the phone, the current line highlighted.",
-        ready: true,
-      },
-    },
   },
   {
     id: "car",
@@ -121,6 +129,18 @@ export const CORE_FEATURES: Feature[] = [
     where: "iPhone",
   },
   {
+    id: "scrobbling",
+    title: "Scrobbling, with a switch",
+    text: "Plays count on your server and in the services it reports to. Switch reporting off to listen anonymously.",
+    where: "Everywhere",
+  },
+  {
+    id: "cache",
+    title: "Songs ahead",
+    text: "The next songs in the queue are fetched in advance, so they start without a wait. You choose how many and how much space they use, and Sonor fetches fewer on mobile data.",
+    where: "Everywhere",
+  },
+  {
     id: "media-keys",
     title: "Media keys and Now Playing",
     text: "Your keyboard's media keys control playback on every desktop. The track also shows in Now Playing on macOS and Linux.",
@@ -133,23 +153,17 @@ export const CORE_FEATURES: Feature[] = [
     where: "macOS · Windows · Linux",
   },
   {
+    id: "privacy",
+    title: "Privacy choices",
+    text: "Switch off online lyric lookups and play reporting separately. Passwords are kept in the system keychain where there is one.",
+    where: "Everywhere",
+  },
+  {
     id: "accent",
     title: "Accent colour and app icon",
     text: "Pick an accent colour in Settings and the app icon follows it: on the Dock (macOS), the taskbar (Windows), the window icon (Linux; the app menu keeps the original), and the home screen (Android and iPhone). Android and iPhone use the nearest preset colour.",
     where: "macOS · Windows · Linux · Android · iPhone",
     visual: "accent-icons",
-  },
-  {
-    id: "scrobbling",
-    title: "Scrobbling, with a switch",
-    text: "Plays count on your server and in the services it reports to. Switch reporting off to listen anonymously.",
-    where: "Everywhere",
-  },
-  {
-    id: "privacy",
-    title: "Privacy choices",
-    text: "Switch off online lyric lookups and play reporting separately. Passwords are kept in the system keychain where there is one.",
-    where: "Everywhere",
   },
 ];
 
@@ -158,12 +172,13 @@ export const DISCOVERY_FEATURES: Feature[] = [
   {
     id: "discovery",
     title: "Mixes, stations and charts",
+    wide: true,
     text: "Mixes made for you appear on Home, with more on Discover, beside your library: by genre, artist, mood or decade, depending on your server. Charts have their own page, reached from Discover. Stations that keep playing and charts by country need Octo.",
     image: {
       src: "/screenshots/features/discovery.webp",
       width: 1600,
       height: 1005,
-      alt: "Music discovery in Sonor: the Charts page for the United States, with the Top songs chart playing and the play queue open on the right.",
+      alt: "Music discovery in Sonor: the Charts page for the United States, with the Top songs list and the play queue open on the right.",
       ready: true,
       phone: {
         src: "/screenshots/phone/discovery.webp",
@@ -176,11 +191,30 @@ export const DISCOVERY_FEATURES: Feature[] = [
     id: "search",
     title: "Search beyond your library",
     text: "Search also finds music your server doesn't have yet, marked so you can tell, and you can play it. With Aurral, search finds artists and albums, and songs you don't have play a 30-second preview.",
+    image: {
+      src: "/screenshots/features/search.webp",
+      width: 1600,
+      height: 1005,
+      alt: "Searching Sonor for Creepy Nuts: songs and artists under Discover, each marked with a spark, with the Now Playing panel on the right.",
+      ready: true,
+      phone: {
+        src: "/screenshots/phone/search.webp",
+        alt: "Searching on the phone for Creepy Nuts: songs under Discover, each marked with a spark, and artists below.",
+        ready: true,
+      },
+    },
   },
   {
     id: "acquire",
     title: "Add music to your library",
     text: "Tap Add to library on a song or album you don't have, and your server fetches it with the tools it is connected to, such as Soulseek. It is added to your library, and the acquisitions drawer shows how each request is going. On Aurral, your account needs permission to add music.",
+    image: {
+      src: "/screenshots/features/acquire.webp",
+      width: 1600,
+      height: 1005,
+      alt: "Search results in Sonor with an Add to library button, one album marked Waiting, and the Acquisitions drawer listing each requested song and its place in the queue.",
+      ready: true,
+    },
   },
   {
     id: "copies",
@@ -203,16 +237,17 @@ export const DISCOVERY_FEATURES: Feature[] = [
   {
     id: "lyrics-top",
     title: "Lyrics and top songs",
+    wide: true,
     text: "Artist pages show their top songs. Choosing another lyric source when the first one is wrong, and animated covers on some albums, need Octo.",
     image: {
       src: "/screenshots/features/lyrics-top.webp",
       width: 1600,
       height: 1005,
-      alt: "An artist page in Sonor with the Popular list of top songs.",
+      alt: "An artist page in Sonor with the Popular list of top songs, most played on Last.fm.",
       ready: true,
       phone: {
         src: "/screenshots/phone/lyrics-top.webp",
-        alt: "An artist page on the phone with its most played songs from Last.fm.",
+        alt: "An artist page on the phone with its Popular list of most played songs from Last.fm.",
         ready: true,
       },
     },

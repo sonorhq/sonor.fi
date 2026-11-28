@@ -1,5 +1,8 @@
+import { existsSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ACCENT_ICONS, COMING, CORE_FEATURES, DISCOVERY_FEATURES, readyImage, type Feature } from "../src/features";
+import { ACCENT_ICONS, COMING, CORE_FEATURES, DISCOVERY_FEATURES, isFlagship, readyImage, type Feature } from "../src/features";
+import { SCREENSHOTS } from "../src/screenshots";
+import { readyPhone } from "../src/shots";
 
 const ALL: Feature[] = [...CORE_FEATURES, ...DISCOVERY_FEATURES];
 
@@ -51,11 +54,11 @@ describe("the feature copy", () => {
     }
   });
 
-  it("has the devices feature, with its picture ready", () => {
+  it("keeps the devices feature in the grid, its picture off until a retake", () => {
     const devices = CORE_FEATURES.find((feature) => feature.id === "devices");
     expect(devices?.title).toBe("Play on your other devices");
-    expect(devices?.image?.ready).toBe(true);
-    expect(readyImage(devices!)?.src).toBe("/screenshots/features/devices.webp");
+    expect(devices?.image?.ready).toBe(false);
+    expect(readyImage(devices!)).toBeUndefined();
     expect(devices?.text).toContain("Jellyfin and Emby");
     expect(devices?.where).toContain("Android");
     expect(COMING).not.toContain("Devices on Android");
@@ -77,5 +80,42 @@ describe("the feature copy", () => {
 
   it("shows six accent icons", () => {
     expect(ACCENT_ICONS).toHaveLength(6);
+  });
+
+  it("makes two flagship rows, in order, each with its picture", () => {
+    expect(CORE_FEATURES.filter(isFlagship).map((feature) => feature.id)).toEqual(["offline", "lyrics"]);
+  });
+
+  it("puts the other nine features in the grid, each with a platform note", () => {
+    const grid = CORE_FEATURES.filter((feature) => !isFlagship(feature) && !feature.visual);
+    expect(grid).toHaveLength(9);
+    for (const feature of grid) {
+      expect(feature.where, feature.id).toBeTruthy();
+    }
+  });
+
+  it("draws exactly one core feature, the accent band", () => {
+    const visuals = CORE_FEATURES.filter((feature) => feature.visual);
+    expect(visuals.map((feature) => feature.id)).toEqual(["accent"]);
+  });
+
+  it("shows the wide discovery cards, and the family feature as a text band", () => {
+    expect(DISCOVERY_FEATURES.filter((feature) => feature.wide).map((feature) => feature.id)).toEqual(["discovery", "lyrics-top"]);
+    expect(readyImage(DISCOVERY_FEATURES.find((feature) => feature.id === "family")!)).toBeUndefined();
+  });
+
+  it("keeps every ready picture and phone shot under 400 KB, as a file that exists", () => {
+    const files = [
+      ...ALL.map((feature) => readyImage(feature)).filter((image) => image !== undefined).map((image) => image.src),
+      ...ALL.map((feature) => readyImage(feature)).filter((image) => image !== undefined).map((image) => readyPhone(image.phone)?.src).filter((src) => src !== undefined),
+      ...SCREENSHOTS.filter((shot) => shot.ready).map((shot) => shot.desktop),
+      ...SCREENSHOTS.filter((shot) => shot.ready).map((shot) => readyPhone(shot.phone)?.src).filter((src) => src !== undefined),
+    ];
+    expect(files.length).toBeGreaterThan(0);
+    for (const src of files) {
+      const file = new URL("../public" + src, import.meta.url);
+      expect(existsSync(file), src).toBe(true);
+      expect(statSync(file).size, src).toBeLessThan(400 * 1024);
+    }
   });
 });

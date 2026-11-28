@@ -3,6 +3,8 @@ import type { PhoneShot } from "./shots";
 // The app screenshots on the home page, from the owner's app (dark only, as the app is).
 // A desktop shot is required; a phone shot beside it is optional and goes in `phone` once it exists.
 // An entry shows only when `ready` is true, so a shot can be added before its files are.
+// Where each shows: `home` is the hero, `nowplaying` sits beside the features intro and `discover` beside the
+// discovery intro.
 
 export interface Screenshot {
   id: string;
@@ -20,7 +22,7 @@ export const SCREENSHOTS: Screenshot[] = [
   {
     id: "home",
     caption: "Home",
-    alt: "Sonor's home screen: quick picks and album grids for recently played and recently added music, with the play queue open on the right.",
+    alt: "Sonor's home screen: quick picks and album rows for recently played and recently added music, with the Now Playing panel on the right.",
     ready: true,
     desktop: "/screenshots/desktop-home.webp",
     phone: {
@@ -32,12 +34,12 @@ export const SCREENSHOTS: Screenshot[] = [
   {
     id: "discover",
     caption: "Discover",
-    alt: "Sonor's Discover page: mixes made for you, artist stations and charts to discover new music, beside your own library.",
+    alt: "Sonor's Discover page: mixes made for you, stations such as Your Radio, and a row of charts, with your library in the sidebar.",
     ready: true,
     desktop: "/screenshots/desktop-discover.webp",
     phone: {
       src: "/screenshots/phone/discover.webp",
-      alt: "Music discovery on the phone: mixes made for you and stations.",
+      alt: "Music discovery on the phone: mixes made for you, stations and a Charts button.",
       ready: true,
     },
   },
