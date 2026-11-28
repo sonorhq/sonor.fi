@@ -10,5 +10,5 @@ try {
   const warn = !result.startsWith("IndexNow accepted") && result !== NO_URLS;
   console.log(warn ? `::warning::${result}` : result);
 } catch (error) {
-  console.log(`IndexNow skipped: ${error instanceof Error ? error.message : String(error)}`);
+  console.log(`::warning::IndexNow skipped: ${error instanceof Error ? error.message : String(error)}`);
 }

@@ -1,7 +1,15 @@
 import { readFileSync } from "node:fs";
 import { renderPage } from "vike/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import config from "../pages/discover/+config";
+
+// The pages below fetch GitHub releases; stubbed so the suite never calls the network.
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response("down", { status: 503 })));
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 /** Renders a page the way the Worker does. */
 async function render(url: string) {

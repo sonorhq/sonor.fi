@@ -1,9 +1,19 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { routeOf, SITE, sitemapXml } from "../src/sitemap";
+import { PAGE_CONTENT, routeOf, SITE, sitemapXml } from "../src/sitemap";
 
 // The built sitemap is read from dist, so these tests run after `vike build` (the test script does that).
 const built = readFileSync(new URL("../dist/client/sitemap.xml", import.meta.url), "utf8");
+
+describe("PAGE_CONTENT", () => {
+  // A renamed source file would silently stop moving its page's lastmod, so each path must still exist.
+  it.each(Object.entries(PAGE_CONTENT).flatMap(([route, paths]) => paths.map((path) => [route, path])))(
+    "%s lists %s, which exists",
+    (_route, path) => {
+      expect(existsSync(new URL("../" + path, import.meta.url))).toBe(true);
+    },
+  );
+});
 
 describe("routeOf", () => {
   it.each([

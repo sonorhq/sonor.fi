@@ -60,10 +60,10 @@ export default function Page() {
       <p>
         <a href="https://github.com/lklynet/aurral">Aurral</a> is a music server with its own discovery. You sign in to it
         as you would to any Subsonic server, and Sonor adds its mixes made for you, playlists by genre, mood and decade,
-        playlists shared from other Aurral servers, and the charts for your server's region, with one per genre. Search also finds artists and
-        albums you don't have, and their songs play a 30-second preview. You can add songs and albums when your account may
-        add music, and an account allowed to manage downloads can choose another copy of a song. Aurral's plugin actions
-        show in a song's menu.
+        playlists shared from other Aurral servers, and the charts for your server's region, with a chart for each genre.
+        Search also finds artists and albums you don't have, and their songs play a 30-second preview. You can add songs
+        and albums when your account may add music, and an account allowed to manage downloads can choose another copy of
+        a song. Aurral's plugin actions show in a song's menu.
       </p>
 
       <h2>How adding music to your library works</h2>
