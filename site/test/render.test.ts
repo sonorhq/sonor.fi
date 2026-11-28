@@ -132,10 +132,12 @@ describe("the rendered pages", () => {
     expect(html).toContain("<h3>Offline downloads</h3>");
     expect(html).toContain("<h3>Play on your other devices</h3>");
     expect(html).toContain("/screenshots/features/devices.webp");
-    expect(html).toContain("<h2>With an Octo server</h2>");
-    expect(html).toContain("Everything here needs an Octo server");
+    expect(html).toContain("<h2>Discover new music</h2>");
+    expect(html).toContain("Discovery needs a discovery provider on your server");
     expect(html).toContain("<h3>Add music to your library</h3>");
-    expect(html).toContain("such as Soulseek or Lidarr");
+    expect(html).toContain("such as Soulseek");
+    expect(html).toContain('href="/discover">How music discovery works in Sonor</a>');
+    expect(html).toContain('<span class="where">Needs Octo</span>');
     expect(html).toContain("<h2>Coming</h2>");
     expect(html).toContain("Plex servers");
     expect(html).toContain("Sonor never downloads music from the internet itself");
@@ -143,6 +145,12 @@ describe("the rendered pages", () => {
     expect(html).toContain("/screenshots/features/discovery.webp");
     expect(html).toContain("The Sonor app icon in six accent colours");
     expect(html).toContain("/screenshots/desktop-nowplaying.webp");
+  });
+
+  it("puts the keyword line in the only h1, under the logo", async () => {
+    const { html } = await render("/");
+    expect(html).toMatch(/<h1 class="hero-title">[\s\S]*A music player for your own Subsonic, Navidrome, Jellyfin or Emby server\.[\s\S]*<\/h1>/);
+    expect(html.match(/<h1/g)).toHaveLength(1);
   });
 
   it("renders the privacy page with its heading and its own canonical", async () => {

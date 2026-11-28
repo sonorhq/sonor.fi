@@ -26,6 +26,8 @@ export interface Feature {
   image?: FeatureImage;
   /** A built-in picture drawn in the page instead of a screenshot. */
   visual?: "accent-icons";
+  /** A discovery feature only one provider gives, e.g. "Needs Octo". */
+  needs?: string;
 }
 
 /** The accent presets shown on the accent block, with the brand kit's dark tile for each (docs/brand/README.md). */
@@ -151,21 +153,21 @@ export const CORE_FEATURES: Feature[] = [
   },
 ];
 
-/** What an Octo server adds. Each needs the server to run Octo; nothing here shows on other servers. */
-export const OCTO_FEATURES: Feature[] = [
+/** Music discovery: what Sonor shows when the server has a discovery provider (Octo or Aurral today). Nothing here shows on other servers. */
+export const DISCOVERY_FEATURES: Feature[] = [
   {
     id: "discovery",
     title: "Mixes, stations and charts",
-    text: "Made-for-you mixes, genre and artist mixes and stations appear on Home and Discover, beside your library. Charts, by country, have their own page, reached from Discover.",
+    text: "Mixes made for you appear on Home, with more on Discover, beside your library: by genre, artist, mood or decade, depending on your server. Charts have their own page, reached from Discover. Stations that keep playing and charts by country need Octo.",
     image: {
       src: "/screenshots/features/discovery.webp",
       width: 1600,
       height: 1005,
-      alt: "Sonor's Charts page for the United States, with the Top songs chart playing and the play queue open on the right.",
+      alt: "Music discovery in Sonor: the Charts page for the United States, with the Top songs chart playing and the play queue open on the right.",
       ready: true,
       phone: {
         src: "/screenshots/phone/discovery.webp",
-        alt: "Charts on the phone: top songs with genre and country filters.",
+        alt: "Discover new music on the phone: the top songs chart with genre and country filters.",
         ready: true,
       },
     },
@@ -173,22 +175,22 @@ export const OCTO_FEATURES: Feature[] = [
   {
     id: "search",
     title: "Search beyond your library",
-    text: "Search also finds songs, albums and artists your server doesn't have yet. They are marked, and you can play them.",
+    text: "Search also finds music your server doesn't have yet, marked so you can tell, and you can play it. With Aurral, search finds artists and albums, and songs you don't have play a 30-second preview.",
   },
   {
     id: "acquire",
     title: "Add music to your library",
-    text: "Tap Add to library on a song or album you don't have, and Octo fetches it through the tools it is connected to, such as Soulseek or Lidarr. It is added to your server, and the acquisitions drawer shows each step.",
+    text: "Tap Add to library on a song or album you don't have, and your server fetches it with the tools it is connected to, such as Soulseek. It is added to your library, and the acquisitions drawer shows how each request is going. On Aurral, your account needs permission to add music.",
   },
   {
     id: "copies",
     title: "Choose the copy you want",
-    text: "When Octo finds several copies, you see their quality, format, size and source, and pick the one to get.",
+    text: "When your server finds several copies of a song, you see what each source offers and pick the one to get. Octo shows their quality, format, size and source. On Aurral, the admin can do this for a song that failed to download, or to replace one you have.",
     image: {
       src: "/screenshots/features/copies.webp",
       width: 1600,
       height: 929,
-      alt: "The Choose a copy dialog in Sonor, listing copies of a song with their format, size and source. The sources' usernames are blurred.",
+      alt: "Adding music to your library in Sonor: the Choose a copy dialog lists copies of a song with their format, size and source. The sources' usernames are blurred.",
       ready: true,
     },
   },
@@ -196,11 +198,13 @@ export const OCTO_FEATURES: Feature[] = [
     id: "family",
     title: "Family requests",
     text: "In a family, adding can wait for the owner's approval. Members see their requests and the weekly limit, and can cancel a pending one. Save-only members can save links, but not add copies.",
+    needs: "Needs Octo",
   },
   {
     id: "lyrics-top",
     title: "Lyrics and top songs",
     text: "Choose another lyric source when the first one is wrong. Artist pages show their top songs, ranked from your library and the catalogue, and some albums have animated covers.",
+    needs: "Needs Octo",
     image: {
       src: "/screenshots/features/lyrics-top.webp",
       width: 1600,
@@ -221,4 +225,5 @@ export const COMING: string[] = [
   "Plex servers",
   "Casting to AirPlay, Chromecast and DLNA",
   "Companion services, such as ListenBrainz",
+  "More discovery providers",
 ];
