@@ -70,6 +70,12 @@ describe("the home page structure", () => {
     expect(html.indexOf("<img")).toBe(html.indexOf(tag));
   });
 
+  it("spans the devices card across the grid while its picture waits", async () => {
+    const html = await render("/");
+    expect(html).toContain('<li class="card wide"><h3>Play on your other devices</h3>');
+    expect(html.match(/<li class="card wide">/g)).toHaveLength(1);
+  });
+
   it("counts the home pictures: 10 desktop and 8 phone shots, with the search phone shot", async () => {
     const html = await render("/");
     const shots = [...html.matchAll(/<img[^>]*src="(\/screenshots\/[^"]+)"/g)];

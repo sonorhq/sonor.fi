@@ -66,12 +66,12 @@ export const CORE_FEATURES: Feature[] = [
     image: {
       src: "/screenshots/features/offline.webp",
       width: 1600,
-      height: 1000,
+      height: 1005,
       alt: "The Downloads tab of Your Library in Sonor, listing the albums and a playlist kept on the device for offline play.",
       ready: true,
       phone: {
         src: "/screenshots/phone/offline.webp",
-        alt: "The Downloads tab of the library on the phone, listing two albums and a playlist kept on the device.",
+        alt: "The Downloads tab of the library on the phone, listing four albums and a playlist kept on the device.",
         ready: true,
       },
     },
@@ -101,11 +101,11 @@ export const CORE_FEATURES: Feature[] = [
       src: "/screenshots/features/lyrics.webp",
       width: 1600,
       height: 1005,
-      alt: "Sonor's Lyrics panel beside an album page, with the line being sung in large type and the lines around it blurred.",
+      alt: "Sonor's Lyrics panel beside an album page, with the line being sung highlighted word by word and the lines further away blurred.",
       ready: true,
       phone: {
         src: "/screenshots/phone/lyrics.webp",
-        alt: "Synced lyrics on the phone, with the line being sung highlighted and the lines around it blurred.",
+        alt: "Synced lyrics on the phone, with the line being sung highlighted and the lines further away blurred.",
         ready: true,
       },
     },

@@ -55,7 +55,8 @@ export function FeatureGrid() {
     <div className="card-scroller" tabIndex={0} role="region" aria-label="More features">
       <ul className="feature-grid">
         {CORE_FEATURES.filter((feature) => !isFlagship(feature) && !feature.visual).map((feature) => (
-          <li key={feature.id} className="card">
+          // A flagship here is still waiting for its picture: it spans the row so the short cards fill even rows.
+          <li key={feature.id} className={feature.flagship ? "card wide" : "card"}>
             <h3>{feature.title}</h3>
             <p>{feature.text}</p>
             <Note feature={feature} />

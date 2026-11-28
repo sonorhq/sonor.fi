@@ -7,7 +7,7 @@ import type { Data } from "./index/+data";
 const SITE = "https://sonor.fi";
 const IMAGE = `${SITE}/sonor-social-1200x630.png`;
 const IMAGE_ALT =
-  "The Sonor wordmark and tagline on a dark brown background, beside the desktop home screen and a phone with the same app.";
+  "The Sonor logo, the tagline Your music, from your own server, and sonor.fi on a dark brown background, beside the desktop home screen and a phone showing the same screen.";
 
 export default function Head() {
   const { urlPathname, is404, errorWhileRendering, config, data } = usePageContext();

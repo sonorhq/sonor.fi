@@ -119,8 +119,11 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .split + .card-scroller { margin-top: clamp(3rem, 6vw, 5rem); }
 .card-scroller:focus-visible { outline: 2px solid var(--accent-hi); outline-offset: 2px; }
 .feature-grid, .shot-wide, .shot-cards, .bands { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
-/* Nine cards: three even rows wide; on two columns the odd one out spans the row, so none is left alone. */
-.feature-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* A flagship still waiting for its picture spans the row, so the eight short cards fill even rows. */
+.feature-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* The global .wide caps width at 62rem for the coming list; the card spans the whole row instead. */
+.feature-grid > li.wide { grid-column: 1 / -1; max-width: none; }
+.feature-grid > li.wide p { max-width: 70ch; }
 .shot-wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .shot-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .bands { margin-top: 1rem; }
@@ -146,7 +149,7 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .band-head .where { margin-top: .35rem; }
 .accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; max-width: 30rem; }
 .accent-icons svg { display: block; width: 100%; height: auto; }
-@media (max-width: 1000px) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .feature-grid > li:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@media (max-width: 1000px) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 860px) {
   .shot-wide, .notes, .band, .band.text-band { grid-template-columns: minmax(0, 1fr); }
   .band { gap: 1rem; padding: 1.25rem; }
