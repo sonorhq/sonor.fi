@@ -39,7 +39,8 @@ describe("the home page structure", () => {
 
   it("puts the flagship rows first, then the features grid, then discovery", async () => {
     const html = await render("/");
-    expect(html.match(/class="split flip"/g)).toHaveLength(2);
+    // Two flagship rows alternate: the first is flipped, the second is not.
+    expect(html.match(/class="split flip"/g)).toHaveLength(1);
     const offline = html.indexOf("<h3>Offline downloads</h3>");
     const gapless = html.indexOf("<h3>Gapless playback</h3>");
     const discover = html.indexOf("<h2>Discover new music</h2>");
@@ -69,7 +70,7 @@ describe("the home page structure", () => {
     expect(html.indexOf("<img")).toBe(html.indexOf(tag));
   });
 
-  it("counts the home pictures: 11 desktop and 7 phone shots, with both new pictures", async () => {
+  it("counts the home pictures: 10 desktop and 8 phone shots, with the search phone shot", async () => {
     const html = await render("/");
     const shots = [...html.matchAll(/<img[^>]*src="(\/screenshots\/[^"]+)"/g)];
     expect(shots).toHaveLength(18);

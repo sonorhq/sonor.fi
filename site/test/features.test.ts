@@ -54,11 +54,11 @@ describe("the feature copy", () => {
     }
   });
 
-  it("has the devices feature, with its picture ready", () => {
+  it("keeps the devices feature in the grid, its picture off until a retake", () => {
     const devices = CORE_FEATURES.find((feature) => feature.id === "devices");
     expect(devices?.title).toBe("Play on your other devices");
-    expect(devices?.image?.ready).toBe(true);
-    expect(readyImage(devices!)?.src).toBe("/screenshots/features/devices.webp");
+    expect(devices?.image?.ready).toBe(false);
+    expect(readyImage(devices!)).toBeUndefined();
     expect(devices?.text).toContain("Jellyfin and Emby");
     expect(devices?.where).toContain("Android");
     expect(COMING).not.toContain("Devices on Android");
@@ -82,13 +82,13 @@ describe("the feature copy", () => {
     expect(ACCENT_ICONS).toHaveLength(6);
   });
 
-  it("makes three flagship rows, in order, each with its picture", () => {
-    expect(CORE_FEATURES.filter(isFlagship).map((feature) => feature.id)).toEqual(["offline", "devices", "lyrics"]);
+  it("makes two flagship rows, in order, each with its picture", () => {
+    expect(CORE_FEATURES.filter(isFlagship).map((feature) => feature.id)).toEqual(["offline", "lyrics"]);
   });
 
-  it("puts the other eight features in the grid, each with a platform note", () => {
+  it("puts the other nine features in the grid, each with a platform note", () => {
     const grid = CORE_FEATURES.filter((feature) => !isFlagship(feature) && !feature.visual);
-    expect(grid).toHaveLength(8);
+    expect(grid).toHaveLength(9);
     for (const feature of grid) {
       expect(feature.where, feature.id).toBeTruthy();
     }
