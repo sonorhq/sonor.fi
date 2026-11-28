@@ -92,6 +92,14 @@ export const CORE_FEATURES: Feature[] = [
     },
   },
   {
+    id: "cast",
+    title: "Cast to speakers and TVs",
+    text: "Play your queue on a Chromecast, or on a DLNA speaker or TV, and keep controlling it from Sonor: play, pause, skip, seek and volume. On a Chromecast, the TV shows the song, the next ones and the lyrics. On iPhone, AirPlay speakers are in the same Devices list.",
+    where: "Chromecast everywhere · DLNA on desktop and Android · AirPlay on iPhone",
+    // No picture yet, so like devices it spans a row of the grid.
+    flagship: true,
+  },
+  {
     id: "lyrics",
     title: "Synced lyrics",
     text: "Lyrics follow the line being sung. If your server has none, Sonor can look them up on LRCLIB, and you can switch that off.",
@@ -257,7 +265,6 @@ export const DISCOVERY_FEATURES: Feature[] = [
 /** Things on the way. Not in the app yet. */
 export const COMING: string[] = [
   "Plex servers",
-  "Casting to AirPlay, Chromecast and DLNA",
   "Companion services, such as ListenBrainz",
   "More discovery providers",
 ];
