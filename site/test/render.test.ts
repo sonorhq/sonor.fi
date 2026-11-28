@@ -103,8 +103,10 @@ describe("the rendered pages", () => {
   it("puts the page metadata in the head: title, canonical, Open Graph, Twitter and JSON-LD", async () => {
     const { html } = await render("/");
     expect(html).toContain('<html lang="en"');
-    expect(html).toContain("<title>Sonor: a music player for Subsonic, Jellyfin and Emby</title>");
-    expect(html).toContain('<meta name="description" content="Sonor plays your Subsonic, Navidrome, Jellyfin and Emby library');
+    expect(html).toContain("<title>Sonor: a music player for Navidrome, Subsonic, Jellyfin and Emby</title>");
+    expect(html).toContain(
+      '<meta name="description" content="A music player for Navidrome, Subsonic, Jellyfin and Emby on desktop and phone',
+    );
     expect(html).toContain('<link rel="canonical" href="https://sonor.fi/"/>');
     expect(html).toContain('<meta property="og:image" content="https://sonor.fi/sonor-social-1200x630.png"/>');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image"/>');
