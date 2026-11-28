@@ -23,16 +23,21 @@ export default function Page() {
         <li>
           Mixes made for you on Home, and more on Discover, by genre, artist, mood or decade, depending on your server.
         </li>
-        <li>Stations that keep playing, started from an artist or a genre.</li>
+        <li>Stations on Home and Discover that keep playing, with Octo.</li>
         <li>
-          Charts on their own page, reached from Discover: by country, or for your server's region, with charts by genre.
+          Charts on their own page, reached from Discover: by country with Octo, or for your server's region with Aurral,
+          which adds charts by genre.
         </li>
         <li>Search beyond your library, with the music you don't have marked so you can tell it apart.</li>
         <li>
           Add to library for songs and albums you don't have, and an acquisitions drawer that shows how each request is
           going.
         </li>
-        <li>A choice of copy when your server finds more than one.</li>
+        <li>
+          A choice of copy when your server finds more than one: with Octo, or on Aurral for accounts allowed to manage
+          downloads.
+        </li>
+        <li>Top songs on artist pages, from your library and beyond it.</li>
       </ul>
 
       <h2>What you need: a discovery provider</h2>
@@ -48,15 +53,14 @@ export default function Page() {
         <a href="https://github.com/winters27/octo">Octo</a> is an extension that runs in front of Navidrome. It gives
         Sonor the most discovery: mixes and stations, charts by country, search for songs, albums and artists you can
         play, adding music with a choice of copy that shows quality, format, size and source, and family requests that
-        wait for the owner's approval. It also adds a choice of lyric sources, top songs ranked from your library and the
-        catalogue, and animated covers on some albums.
+        wait for the owner's approval. It also adds a choice of lyric sources and animated covers on some albums.
       </p>
 
       <h3>Aurral</h3>
       <p>
         <a href="https://github.com/lklynet/aurral">Aurral</a> is a music server with its own discovery. You sign in to it
         as you would to any Subsonic server, and Sonor adds its mixes made for you, playlists by genre, mood and decade,
-        playlists shared from other Aurral servers, and the charts for your server's region. Search also finds artists and
+        playlists shared from other Aurral servers, and the charts for your server's region, with one per genre. Search also finds artists and
         albums you don't have, and their songs play a 30-second preview. You can add songs and albums when your account may
         add music, and an account allowed to manage downloads can choose another copy of a song. Aurral's plugin actions
         show in a song's menu.
@@ -66,8 +70,8 @@ export default function Page() {
       <p>
         When you tap Add to library on a song or album you don't have, Sonor passes the request to your server. The server
         looks for a copy with the tools its owner connected to it, such as Soulseek, and adds it to your library when it
-        arrives. Sonor's acquisitions drawer shows each request as it goes from queued to searching, downloading and done,
-        or why it failed.
+        arrives. Sonor's acquisitions drawer shows how each request is going, from queued to done, or why it failed. With
+        Octo it also keeps a log of each step.
       </p>
 
       <FeatureImage feature={copies} />

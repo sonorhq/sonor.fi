@@ -58,10 +58,11 @@ describe("the music discovery page", () => {
 });
 
 describe("links to the discovery page", () => {
-  it("links to it from the home page and the privacy page footers", async () => {
-    for (const url of ["/", "/privacy"]) {
+  it("links to it from the footer of the home, privacy and discovery pages", async () => {
+    for (const url of ["/", "/privacy", "/discover"]) {
       const { html } = await render(url);
-      expect(html).toContain('href="/discover"');
+      const footer = html.match(/<nav aria-label="Footer">([\s\S]*?)<\/nav>/);
+      expect(footer?.[1], url).toContain('href="/discover"');
     }
   });
 });

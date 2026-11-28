@@ -2,7 +2,7 @@
 
 > Sonor is a music player for your own Subsonic, Navidrome, Jellyfin or Emby server, on macOS, Windows, Linux, Android and iPhone, with music discovery when the server has a discovery provider. It is in public beta.
 
-Sonor plays the library on your server, with offline downloads, gapless playback, synced lyrics, CarPlay and Android Auto. With a discovery provider on the server (Octo or Aurral today), it also shows mixes, stations, charts and music you don't have yet, and can ask your server to add it to your library. Sonor never downloads music from the internet itself.
+Sonor plays the library on your server, with offline downloads, gapless playback, synced lyrics, CarPlay and Android Auto. With a discovery provider on the server (Octo or Aurral today), it also shows mixes, charts and music you don't have yet, with endless stations on Octo, and can ask your server to add it to your library. Sonor never downloads music from the internet itself.
 
 ## Pages
 
