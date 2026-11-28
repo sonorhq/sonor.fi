@@ -62,7 +62,7 @@ describe("the feature copy", () => {
     expect(devices?.text).toContain("Jellyfin and Emby");
     expect(devices?.where).toContain("Android");
     expect(COMING).not.toContain("Devices on Android");
-    expect(COMING).toContain("Casting to AirPlay, Chromecast and DLNA");
+    expect(COMING).not.toContain("Casting to AirPlay, Chromecast and DLNA");
   });
 
   it("marks the discovery features that only one provider gives", () => {
@@ -88,7 +88,7 @@ describe("the feature copy", () => {
 
   it("puts the other nine features in the grid, each with a platform note", () => {
     const grid = CORE_FEATURES.filter((feature) => !isFlagship(feature) && !feature.visual);
-    expect(grid).toHaveLength(9);
+    expect(grid).toHaveLength(10);
     for (const feature of grid) {
       expect(feature.where, feature.id).toBeTruthy();
     }
