@@ -22,6 +22,9 @@ const SECURITY_HEADERS = {
 // Lets browsers that send client hints say their platform and architecture on the next visit.
 const CLIENT_HINTS = ["Sec-CH-UA-Platform", "Sec-CH-UA-Arch", "Sec-CH-UA-Bitness"];
 
+// /assets/ holds only Vite's build output, named by content hash, so a changed file gets a new name.
+const IMMUTABLE = "public, max-age=31536000, immutable";
+
 export interface EdgeDeps {
   /** The static assets binding; answers 404 for anything that isn't a file. */
   assets: (request: Request) => Promise<Response>;
@@ -68,6 +71,9 @@ export function createEdgeHandler({ assets, render }: EdgeDeps) {
     }
 
     const file = await assets(request);
-    return withEdgeHeaders(file.status === 404 ? await render(request) : file);
+    if (file.status === 404) return withEdgeHeaders(await render(request));
+    const response = withEdgeHeaders(file);
+    if (url.pathname.startsWith("/assets/")) response.headers.set("Cache-Control", IMMUTABLE);
+    return response;
   };
 }

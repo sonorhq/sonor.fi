@@ -1,7 +1,9 @@
+import { existsSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { createEdgeHandler } from "../src/edge";
 
 const HSTS = "max-age=31536000; includeSubDomains";
+const IMMUTABLE = "public, max-age=31536000, immutable";
 const CSP = "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'";
 
 // The Worker's assets and Vike are faked: the tests cover the rules in front of them.
@@ -117,5 +119,33 @@ describe("assets and pages", () => {
     expect(res.status).toBe(404);
     expect(res.headers.get("Strict-Transport-Security")).toBe(HSTS);
     expect(res.headers.get("Content-Security-Policy")).toContain("default-src 'self'");
+  });
+});
+
+describe("caching", () => {
+  it("marks a hashed build asset as immutable for a year", async () => {
+    const { get, render } = setup({ assetStatus: 200 });
+    const res = await get("https://sonor.fi/assets/entries/pages_index.CfmyQMx5.js");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Cache-Control")).toBe(IMMUTABLE);
+    expect(render).not.toHaveBeenCalled();
+  });
+
+  it("leaves a file outside /assets/ without a Cache-Control of its own", async () => {
+    const { get } = setup({ assetStatus: 200 });
+    const res = await get("https://sonor.fi/favicon-32.png");
+    expect(res.headers.get("Cache-Control")).toBeNull();
+  });
+
+  it("does not mark a rendered page under /assets/ as immutable", async () => {
+    const { get, render } = setup();
+    const res = await get("https://sonor.fi/assets/x.js");
+    expect(res.status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(res.headers.get("Cache-Control")).not.toBe(IMMUTABLE);
+  });
+
+  it("keeps non-hashed files out of public/assets, so only hashed names are immutable", () => {
+    expect(existsSync(new URL("../public/assets", import.meta.url))).toBe(false);
   });
 });
