@@ -68,7 +68,7 @@ describe("the feature copy", () => {
       expect(["Needs Octo", "Needs Aurral"]).toContain(note);
     }
     expect(DISCOVERY_FEATURES.find((feature) => feature.id === "family")?.needs).toBe("Needs Octo");
-    expect(DISCOVERY_FEATURES.find((feature) => feature.id === "lyrics-top")?.needs).toBe("Needs Octo");
+    expect(DISCOVERY_FEATURES.find((feature) => feature.id === "lyrics-top")?.needs).toBeUndefined();
   });
 
   it("lists the other discovery providers as coming", () => {

@@ -126,7 +126,7 @@ describe("the rendered pages", () => {
     expect(html).toContain("See all releases on GitHub.");
   });
 
-  it("presents the core features, the Octo features and the coming list, with pictures only for ready ones", async () => {
+  it("presents the core features, the discovery features and the coming list, with pictures only for ready ones", async () => {
     const { html } = await render("/");
     expect(html).toContain("<h2>Made for listening</h2>");
     expect(html).toContain("<h3>Offline downloads</h3>");

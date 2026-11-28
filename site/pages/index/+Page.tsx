@@ -67,8 +67,8 @@ export default function Page() {
             library. Play what you find, and add what you like to your library on your server.
           </p>
           <p className="lede">
-            Discovery needs a discovery provider on your server: Octo, which runs in front of Navidrome, or Aurral, today,
-            with more planned. On any other server, Sonor is the player above.
+            Discovery needs a discovery provider on your server. Today that is Octo, which runs in front of Navidrome, or
+            Aurral, a music server with its own discovery. More are planned. On any other server, Sonor is the player above.
           </p>
           <p className="lede">
             Sonor never downloads music from the internet itself. Your server does, with the tools you connect to it; Sonor

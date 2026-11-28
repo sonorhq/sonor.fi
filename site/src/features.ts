@@ -185,7 +185,7 @@ export const DISCOVERY_FEATURES: Feature[] = [
   {
     id: "copies",
     title: "Choose the copy you want",
-    text: "When your server finds several copies of a song, you see what each source offers and pick the one to get. Octo shows their quality, format, size and source. On Aurral, the admin can do this for a song that failed to download, or to replace one you have.",
+    text: "When your server finds several copies of a song, you see what each source offers and pick the one to get. Octo shows their quality, format, size and source. On Aurral, an account allowed to manage downloads can do this for a song that failed to download, or to replace one you have.",
     image: {
       src: "/screenshots/features/copies.webp",
       width: 1600,
@@ -203,8 +203,7 @@ export const DISCOVERY_FEATURES: Feature[] = [
   {
     id: "lyrics-top",
     title: "Lyrics and top songs",
-    text: "Choose another lyric source when the first one is wrong. Artist pages show their top songs, ranked from your library and the catalogue, and some albums have animated covers.",
-    needs: "Needs Octo",
+    text: "Artist pages show their top songs. Choosing another lyric source when the first one is wrong, and animated covers on some albums, need Octo.",
     image: {
       src: "/screenshots/features/lyrics-top.webp",
       width: 1600,

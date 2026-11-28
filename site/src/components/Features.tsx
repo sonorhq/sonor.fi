@@ -55,9 +55,9 @@ export function CoreFeatures() {
 /** The discovery features as cards, two across on a wide screen. */
 export function DiscoveryFeatures() {
   return (
-    <ul className="octo-grid">
+    <ul className="discovery-grid">
       {DISCOVERY_FEATURES.map((feature) => (
-        <li key={feature.id} className="octo-card">
+        <li key={feature.id} className="discovery-card">
           <FeatureImage feature={feature} />
           <h3>{feature.title}</h3>
           <p>{feature.text}</p>
