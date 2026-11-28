@@ -206,7 +206,7 @@ export const DISCOVERY_FEATURES: Feature[] = [
       src: "/screenshots/features/acquire.webp",
       width: 1600,
       height: 1005,
-      alt: "Adding music to your library in Sonor: search results with an Add to library button, one album marked Waiting, and the Acquisitions drawer listing each requested song and its place in the queue.",
+      alt: "Search results in Sonor with an Add to library button, one album marked Waiting, and the Acquisitions drawer listing each requested song and its place in the queue.",
       ready: true,
     },
   },

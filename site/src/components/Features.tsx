@@ -51,7 +51,8 @@ export function FlagshipFeatures() {
 /** The other core features as short cards; a swipe row on a phone. */
 export function FeatureGrid() {
   return (
-    <div className="card-scroller">
+    // The cards hold no links, so the row itself is the keyboard stop that lets a keyboard scroll it.
+    <div className="card-scroller" tabIndex={0} role="region" aria-label="More features">
       <ul className="feature-grid">
         {CORE_FEATURES.filter((feature) => !isFlagship(feature) && !feature.visual).map((feature) => (
           <li key={feature.id} className="card">

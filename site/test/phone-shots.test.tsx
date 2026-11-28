@@ -63,10 +63,16 @@ describe("a feature picture with a phone shot", () => {
     expect(tag).toContain('alt="The fixture on a phone"');
   });
 
-  it("links the phone shot to its own file, with the same caption", () => {
+  it("names each picture of the pair in its caption, for the lightbox's count", () => {
+    const html = renderToStaticMarkup(<FeatureImage feature={feature(PHONE)} />);
+    expect(html).toContain('data-caption="Fixture, on desktop"');
+    expect(html).toContain('data-caption="Fixture, on the phone"');
+  });
+
+  it("links the phone shot to its own file, with its caption", () => {
     const html = renderToStaticMarkup(<FeatureImage feature={feature(PHONE)} />);
     expect(html).toContain(
-      '<a class="zoom stage-phone" href="/screenshots/phone/fixture.webp" data-zoom="" data-caption="Fixture" aria-label="Enlarge: The fixture on a phone"',
+      '<a class="zoom stage-phone" href="/screenshots/phone/fixture.webp" data-zoom="" data-caption="Fixture, on the phone" aria-label="Enlarge: The fixture on a phone"',
     );
   });
 
@@ -88,7 +94,8 @@ describe("a home screenshot stage", () => {
     const html = renderToStaticMarkup(<ScreenshotStage id="fixture" shots={[shot(PHONE)]} />);
     expect(html).toContain('class="zoom stage-desk"');
     expect(html).toContain('class="zoom stage-phone"');
-    expect(html).toContain('data-caption="Fixture"');
+    expect(html).toContain('data-caption="Fixture, on desktop"');
+    expect(html).toContain('data-caption="Fixture, on the phone"');
   });
 
   it("shows the desktop shot alone when the entry has no phone shot", () => {

@@ -54,7 +54,11 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .btn-ghost { color: var(--text); border-color: var(--line-2); }
 .btn-ghost:hover { border-color: rgb(246 244 241 / .4); background: rgb(246 244 241 / .04); }
 .meta { margin: .9rem 0 0; color: var(--faint); font-size: .8125rem; font-variant-numeric: tabular-nums; }
-@media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; } }
+/* Between 961 and 1200 px the hero's picture would shrink below the section pictures, so the text column narrows. */
+@media (max-width: 1200px) { .hero-grid { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: 2.5rem; } }
+/* Side by side down to 720 px, with a narrower text column; stacked below 720 px. */
+@media (max-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); gap: 1.5rem; } }
+@media (max-width: 719px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 2rem; } }
 @media (max-width: 640px) { .wave-mark { width: 2.5rem; height: 2.5rem; margin-bottom: .5rem; } }
 
 /* header: sticky, so the three links stay in reach on a long page */
@@ -101,7 +105,11 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .split-copy .lede { max-width: none; }
 .split-copy .lede + .lede { margin-top: .75rem; }
 .where { display: block; margin-top: .75rem; font-size: .75rem; color: var(--note); letter-spacing: .02em; }
-@media (max-width: 860px) {
+@media (max-width: 960px) {
+  .split { grid-template-columns: minmax(15rem, 1fr) minmax(0, 1.55fr); gap: 1.5rem; }
+  .split.flip { grid-template-columns: minmax(0, 1.55fr) minmax(15rem, 1fr); }
+}
+@media (max-width: 719px) {
   .split, .split.flip { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
   .split.flip .split-media { order: 0; }
 }
@@ -135,7 +143,7 @@ section { padding: clamp(4rem, 8vw, 6rem) 0 0; }
 .bands .band { margin-top: 0; }
 .band.text-band { grid-template-columns: minmax(0, 18rem) minmax(0, 1fr); }
 .band-head .where { margin-top: .35rem; }
-.accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; }
+.accent-icons { display: grid; grid-template-columns: repeat(6, 1fr); gap: .75rem; max-width: 30rem; }
 .accent-icons svg { display: block; width: 100%; height: auto; }
 @media (max-width: 1000px) { .feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 860px) {

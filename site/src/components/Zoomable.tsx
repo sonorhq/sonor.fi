@@ -61,11 +61,19 @@ export function Lightbox() {
       event.preventDefault();
       open(event.target);
     };
+    // A swipe row does not scroll to a card that takes the focus by Tab, so the row scrolls to it.
+    const onFocusIn = (event: FocusEvent) => {
+      if (event.target instanceof Element && event.target.closest(".card-scroller")) {
+        event.target.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    };
     document.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("focusin", onFocusIn);
     };
   }, []);
 

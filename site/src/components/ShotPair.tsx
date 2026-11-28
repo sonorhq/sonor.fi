@@ -13,9 +13,12 @@ export interface Shot {
  * when there is one. Both open in the lightbox as a pair. `priority` is for the hero only (the LCP image).
  */
 export function ShotPair({ className, desktop, phone, caption, priority = false }: { className?: string; desktop: Shot; phone?: PhoneShot; caption?: string; priority?: boolean }) {
+  // In a pair the lightbox counts two pictures, so each caption says which one it is.
+  const desktopCaption = caption && phone ? `${caption}, on desktop` : caption;
+  const phoneCaption = caption ? `${caption}, on the phone` : undefined;
   return (
     <div className={["stage", phone ? "with-phone" : "", className].filter(Boolean).join(" ")} data-zoom-group="">
-      <Zoomable className="stage-desk" src={desktop.src} alt={desktop.alt} caption={caption}>
+      <Zoomable className="stage-desk" src={desktop.src} alt={desktop.alt} caption={desktopCaption}>
         {priority ? (
           <img src={desktop.src} width={desktop.width} height={desktop.height} alt={desktop.alt} fetchPriority="high" />
         ) : (
@@ -23,7 +26,7 @@ export function ShotPair({ className, desktop, phone, caption, priority = false 
         )}
       </Zoomable>
       {phone ? (
-        <Zoomable className="stage-phone" src={phone.src} alt={phone.alt} caption={caption}>
+        <Zoomable className="stage-phone" src={phone.src} alt={phone.alt} caption={phoneCaption}>
           <img src={phone.src} width={PHONE_SIZE.width} height={PHONE_SIZE.height} alt={phone.alt} loading={priority ? undefined : "lazy"} decoding="async" />
         </Zoomable>
       ) : null}

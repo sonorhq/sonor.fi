@@ -53,6 +53,11 @@ describe("the home page structure", () => {
     expect(html).toMatch(/class="band text-band">[\s\S]*?Family requests[\s\S]*?Needs Octo/);
   });
 
+  it("makes the feature cards' swipe row a keyboard stop, named as a region", async () => {
+    const html = await render("/");
+    expect(html).toMatch(/<div class="card-scroller"[^>]*tabindex="0"[^>]*role="region"[^>]*aria-label="More features"/);
+  });
+
   it("opens the hero picture first, eagerly and with a high fetch priority", async () => {
     const html = await render("/");
     const tag = html.match(/<img[^>]*src="\/screenshots\/desktop-home\.webp"[^>]*>/)![0];
