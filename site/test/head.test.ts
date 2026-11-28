@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import home from "../pages/index/+config";
 import { THEME_COLOR } from "../src/brand";
 
-// One release, as the GitHub API returns it: the newest non-draft is the beta.
+// One release, as the GitHub API returns it.
 const RELEASE = {
   tag_name: "v0.1.0-beta.23",
   html_url: "https://github.com/sonorhq/sonor/releases/tag/v0.1.0-beta.23",
@@ -55,7 +55,7 @@ describe("the structured data on the home page", () => {
     vi.unstubAllGlobals();
   });
 
-  it("describes the organization, the website and the app", async () => {
+  it("describes the organisation, the website and the app", async () => {
     const { html } = await render("/");
     const { "@graph": graph } = jsonLdOf(html);
     expect(graph.map((node) => node["@type"])).toEqual(["Organization", "WebSite", "SoftwareApplication"]);
@@ -71,6 +71,22 @@ describe("the structured data on the home page", () => {
     for (const shot of app.screenshot as string[]) {
       expect(shot.startsWith("https://sonor.fi/screenshots/")).toBe(true);
     }
+  });
+
+  it("escapes < in the JSON-LD so a tag name can't close the script element", async () => {
+    const tag = "v1</script><script>x";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify([{ ...RELEASE, tag_name: tag }]), { status: 200 })),
+    );
+    const { html } = await render("/");
+    const start = '<script type="application/ld+json">';
+    const from = html.indexOf(start) + start.length;
+    const text = html.slice(from, html.indexOf("</script>", from));
+    expect(text).not.toContain("<");
+    expect(html).toContain("1\\u003c/script>");
+    const app = jsonLdOf(html)["@graph"].find((node) => node["@type"] === "SoftwareApplication") as Record<string, unknown>;
+    expect(app.softwareVersion).toBe("1</script><script>x");
   });
 
   it("leaves out ratings and reviews", async () => {
