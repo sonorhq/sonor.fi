@@ -1,6 +1,6 @@
 import { useData } from "vike-react/useData";
 import { DownloadTabs, PrimaryButton, PrimaryMeta, usePlatform } from "../../src/components/Downloads";
-import { ComingList, CoreFeatures, OctoFeatures } from "../../src/components/Features";
+import { ComingList, CoreFeatures, DiscoveryFeatures } from "../../src/components/Features";
 import { Lockup } from "../../src/components/Logo";
 import { Screenshots } from "../../src/components/Screenshots";
 import type { Data } from "./+data";
@@ -16,10 +16,10 @@ export default function Page() {
         <div className="col">
           <h1 className="hero-title">
             <Lockup />
+            <span className="tagline rise d1">
+              A music player for your own Subsonic, Navidrome, Jellyfin or Emby server. <span>On your desktop, your phone and in the car.</span>
+            </span>
           </h1>
-          <p className="tagline rise d1">
-            A music player for your own Subsonic, Navidrome, Jellyfin or Emby server. <span>On your desktop, your phone and in the car.</span>
-          </p>
           <span className="pill rise d2">
             <i aria-hidden="true" />
             {version ? `Public beta · ${version}` : "Public beta"}
@@ -59,20 +59,27 @@ export default function Page() {
         </div>
       </section>
 
-      <section id="octo">
+      <section id="discovery">
         <div className="col">
-          <h2>With an Octo server</h2>
+          <h2>Discover new music</h2>
           <p className="lede">
-            Octo is a server extension that runs in front of Navidrome. Everything here needs an Octo server; on any other
-            server, Sonor is the player above.
+            Sonor can also show you music you don't have yet: mixes made for you, stations, charts and search beyond your
+            library. Play what you find, and add what you like to your library on your server.
           </p>
           <p className="lede">
-            Sonor never downloads music from the internet itself. Your Octo server does, with the tools you connect to it;
-            Sonor only shows what it finds and passes on what you pick.
+            Discovery needs a discovery provider on your server. Today that is Octo, which runs in front of Navidrome, or
+            Aurral, a music server with its own discovery. More are planned. On any other server, Sonor is the player above.
+          </p>
+          <p className="lede">
+            Sonor never downloads music from the internet itself. Your server does, with the tools you connect to it; Sonor
+            only shows what it finds and passes on what you pick.
+          </p>
+          <p className="lede">
+            <a href="/discover">How music discovery works in Sonor</a>
           </p>
         </div>
         <div className="col wide">
-          <OctoFeatures />
+          <DiscoveryFeatures />
         </div>
       </section>
 
