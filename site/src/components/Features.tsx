@@ -1,4 +1,4 @@
-import { ACCENT_ICONS, COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../features";
+import { ACCENT_ICONS, COMING, CORE_FEATURES, DISCOVERY_FEATURES, readyImage, type Feature } from "../features";
 import { readyPhone } from "../shots";
 import { AppIcon } from "./Logo";
 import { ShotPair } from "./ShotPair";
@@ -52,15 +52,16 @@ export function CoreFeatures() {
   );
 }
 
-/** The Octo features as cards, two across on a wide screen. */
-export function OctoFeatures() {
+/** The discovery features as cards, two across on a wide screen. */
+export function DiscoveryFeatures() {
   return (
-    <ul className="octo-grid">
-      {OCTO_FEATURES.map((feature) => (
-        <li key={feature.id} className="octo-card">
+    <ul className="discovery-grid">
+      {DISCOVERY_FEATURES.map((feature) => (
+        <li key={feature.id} className="discovery-card">
           <FeatureImage feature={feature} />
           <h3>{feature.title}</h3>
           <p>{feature.text}</p>
+          {feature.needs ? <span className="where">{feature.needs}</span> : null}
         </li>
       ))}
     </ul>

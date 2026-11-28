@@ -32,12 +32,12 @@ export const SCREENSHOTS: Screenshot[] = [
   {
     id: "discover",
     caption: "Discover",
-    alt: "Sonor's Discover page with an Octo server: mixes made for you, artist stations and charts, beside your own library.",
+    alt: "Sonor's Discover page: mixes made for you, artist stations and charts to discover new music, beside your own library.",
     ready: true,
     desktop: "/screenshots/desktop-discover.webp",
     phone: {
       src: "/screenshots/phone/discover.webp",
-      alt: "Discover on the phone: mixes made for you and stations.",
+      alt: "Music discovery on the phone: mixes made for you and stations.",
       ready: true,
     },
   },

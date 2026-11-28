@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ACCENT_ICONS, COMING, CORE_FEATURES, OCTO_FEATURES, readyImage, type Feature } from "../src/features";
+import { ACCENT_ICONS, COMING, CORE_FEATURES, DISCOVERY_FEATURES, readyImage, type Feature } from "../src/features";
 
-const ALL: Feature[] = [...CORE_FEATURES, ...OCTO_FEATURES];
+const ALL: Feature[] = [...CORE_FEATURES, ...DISCOVERY_FEATURES];
 
 describe("the feature copy", () => {
   it("has a unique id and a title and text for every feature", () => {
@@ -60,6 +60,19 @@ describe("the feature copy", () => {
     expect(devices?.where).toContain("Android");
     expect(COMING).not.toContain("Devices on Android");
     expect(COMING).toContain("Casting to AirPlay, Chromecast and DLNA");
+  });
+
+  it("marks the discovery features that only one provider gives", () => {
+    const needs = ALL.map((feature) => feature.needs).filter(Boolean);
+    for (const note of needs) {
+      expect(["Needs Octo", "Needs Aurral"]).toContain(note);
+    }
+    expect(DISCOVERY_FEATURES.find((feature) => feature.id === "family")?.needs).toBe("Needs Octo");
+    expect(DISCOVERY_FEATURES.find((feature) => feature.id === "lyrics-top")?.needs).toBeUndefined();
+  });
+
+  it("lists the other discovery providers as coming", () => {
+    expect(COMING).toContain("More discovery providers");
   });
 
   it("shows six accent icons", () => {
